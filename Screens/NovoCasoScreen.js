@@ -1,39 +1,136 @@
-import React, { useState } from 'react';
-import {View,Text,TextInput,StyleSheet,ScrollView,Image,Dimensions,} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {View,Text, Alert, TextInput, StyleSheet, ScrollView, Platform, TouchableOpacity} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import {Button } from 'react-native-paper';
 import Odontograma from './components/OdontogramaScreen';
+import * as Location from 'expo-location';
+
 
 function CriarCasoScreen({ navigation }) {
   const [nomeCaso, setNomeCaso] = useState('');
   const [responsavel, setResponsavel] = useState('');
-  const [endereco, setEndereco] = useState('Rua aviador dos camarões, 158'); // Preenchido como no print
   const [informacoes, setInformacoes] = useState('');
   const [descricao, setDescricao] = useState('');
-  const [data, setData] = useState('');
-  const [hora, setHora] = useState('');
+  const [endereco, setEndereco] = useState('');
   const [sexoVitima, setSexoVitima] = useState('');
   const [causaMorte, setCausaMorte] = useState('');
   const [corPele, setCorPele] = useState('');
   const [identificacao, setIdentificacao] = useState('');
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [hora, setHora] = useState(new Date());
+  const [data, setData] = useState(new Date());
+
   const [OdontogramaData, setOdontogramaData] = useState({});
 
+
+  async function obterLocalizacao(){
+    try{
+      const {status} = await Location.requestForegroundPermissionsAsync();
+
+      if(status !== 'granted'){
+        Alert.alert('Permissão negada', 'Permissão para acessar localização foi negada.');
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const {latitude, longitude} = location.coords;
+
+      // Obtém a partir da latitude e longitude
+      const editGeocode = await Location.reverseGeocodeAsync({
+        latitude,
+        longitude,
+      });
+
+      if (editGeocode.length > 0){
+        const place = editGeocode[0];
+
+        const enderecoComplet = `${place.formattedAddress}`;
+         setEndereco(enderecoComplet);
+      }
+    } catch(error) {
+      Alert.alert('Erro', 'Não foi possível obter a localização.');
+      console.error(error);
+    }
+  }
+  useEffect(() => {
+    obterLocalizacao();
+  }, []);
+
+  //Formatação da hora para manipular data
+
+  const handleDataChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if(selectedDate){
+      setData(selectedDate);
+    }
+  };
+
+  const handleTimeChange = (event, selectedTime) => {
+    setShowTimePicker(false);
+    if(selectedTime){
+      setHora(selectedTime);
+    }
+  };
+
+  const criarCaso = async () => {
+  const novoCaso = {
+    nomeCaso,
+    responsavel,
+    informacoes,
+    descricao,
+    endereco,
+    data: data.toISOString(),
+    hora: hora.toString().slice(0, 5),
+    sexoVitima,
+    causaMorte,
+    corPele,
+    identificacao,
+    odontograma: OdontogramaData,
+  };
+  
+  try {
+    const response = await fetch('https://backend-siop.onrender.com/api/cases', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(novoCaso),
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao criar caso');
+    }
+
+    const data = await response.json();
+    console.log('Caso criado com sucesso:', data);
+
+  } catch (error) {
+    console.error('Erro ao criar caso:', error);
+    alert('Erro ao criar caso. Tente novamente.');
+  }
+};
   return(
     <ScrollView style={styles.container}>
       <Text style={styles.headerTitle}>Criar caso</Text>
 
+
+    {/* campo identificação */}
       <View style={styles.pickerContainer}>
         <Picker
-        selectedValue={identificacao}
-        onValueChange={(itemValue) => setIdentificacao(itemValue)}
-        style={styles.picker}
-        dropdownIconColor="#fff">
-          <Picker.Item label="Selecione" value=""/>
-          <Picker.Item label="Identificado" value="identificado"/>
-          <Picker.Item label="Não identificado" value="Não identificado"/>
+          selectedValue={identificacao}
+          onValueChange={setIdentificacao}
+          style={styles.picker}>
+
+          <Picker.Item label="Identificação" value="" />
+          <Picker.Item label="Identificado" value="identificado" />
+          <Picker.Item label="Não identificado" value="nao_identificado" />
         </Picker>
       </View>
     
+    {/* campo nome do caso */}
     <View style={styles.inputGroup}>
       <Text style={styles.label}>Nome do caso:</Text>
       <TextInput
@@ -44,7 +141,9 @@ function CriarCasoScreen({ navigation }) {
       />
     </View>
 
+    {/* responsavel */}
     <View style={styles.inputGroup}>
+      
       <Text style={styles.label}>Reponsável:</Text>
       <TextInput
       style={styles.input}
@@ -54,21 +153,20 @@ function CriarCasoScreen({ navigation }) {
       />
     </View>
 
-    <View style={styles.section}>
-      <View style={styles.inputGroup}>
+    {/* local */}
+  <View style={styles.section}>
+    <View style={styles.inputGroup}>
       <Text style={styles.label}>Local:</Text>
       <TextInput
-      style={styles.input}
-      value={endereco}
-      onChangeText={setEndereco}
-      placeholder="Local do caso"
-      />
+        style={styles.input}
+        value={endereco}
+        onChangeText={setEndereco}
+        placeholder="Obtendo localização..."
+     />
     </View>
-      <View style={styles.mapContainer}>
-        {/* imagem do mapa */}
-      </View>
-    </View>
+  </View>
 
+    {/* informações */}
     <View style={styles.inputGroup}>
       <Text style={styles.label}>Informações:</Text>
       <TextInput
@@ -77,20 +175,23 @@ function CriarCasoScreen({ navigation }) {
       onChangeText={setInformacoes}
       multiline
       numberOfLines={4}
-      placeholder="Informações do  caso"
+      placeholder="Informações do caso"
       />
     </View>
 
+    {/* descrição */}
     <View style={styles.inputGroup}>
       <Text style={styles.label}>Descrição:</Text>
       <TextInput
       style={styles.input}
       value={descricao}
-      onChangeText={setResponsavel}
-      placeholder="Descrição do  caso"
+      onChangeText={setDescricao}
+      numberOfLines={4}
+      placeholder="Descrição do caso"
       />
     </View>
 
+    {/* sexo da vitima */}
       <View style={styles.pickerContainer}>
         <Picker
         selectedValue={sexoVitima}
@@ -118,31 +219,51 @@ function CriarCasoScreen({ navigation }) {
           </Picker>
         </View>
     
+    {/* div data e hora */}
     <View style={styles.row}>
 
       <View style={[styles.inputGroup, styles.width]}>
         <Text style={styles.label}>Hora:</Text>
-        <TextInput
-        style={styles.input}
-        value={hora}
-        onChangeText={setHora}
-        placeholder="HH:MM"
-        keyboardType="numeric"
-        />
+        <TouchableOpacity
+          style={styles.input}
+          onPress={() => setShowTimePicker(true)}
+          ><Text>{hora.toLocaleTimeString('pt-br', 
+          {hour: '2-digit',
+          minute: '2-digit'})}
+          </Text>
+        </TouchableOpacity>
       </View>
 
+      
       <View style={[styles.inputGroup, styles.width]}>
         <Text style={styles.label}>Data:</Text>
-        <TextInput
-        style={styles.input}
-        value={data}
-        onChangeText={setData}
-        placeholder="DD/MM/AAAA"
-        keyboardType="numeric"
-        />
+        <TouchableOpacity
+          style={styles.input}
+          onPress={() => setShowDatePicker(true)}
+          ><Text>{data.toLocaleDateString('pt-BR')}</Text>
+        </TouchableOpacity>
       </View>
-    </View>
 
+         {showDatePicker && (
+          <DateTimePicker
+          value={data}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleDataChange}
+          />
+        )}
+
+        {showTimePicker && (
+          <DateTimePicker
+          value={hora}
+          mode="time"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleTimeChange}
+          />
+        )} 
+    </View>
+      
+      {/* causa da morte */}
       <View style={styles.inputGroup}>
       <Text style={styles.label}> Causa da morte:</Text>
       <TextInput
@@ -150,19 +271,30 @@ function CriarCasoScreen({ navigation }) {
       value={causaMorte}
       onChangeText={setCausaMorte}
       placeholder="Causa da morte"
+      numberOfLines={4}
       />
     </View>
 
+
+    {/* componente odontograma */}
     <View style={styles.section}>
-      <Odontograma odontograma={Odontograma} setOdontograma={setOdontogramaData} />
+      <Odontograma odontograma={OdontogramaData} setOdontograma={setOdontogramaData} />
     </View>
 
+    {/* btn evidencia */}
     <Button
         mode="contained"
         onPress={() => navigation.navigate('Evidencia')}
         style={styles.add}
       >
         + Adiciona evidência
+      </Button>
+    <Button
+        mode="contained"
+        onPress={criarCaso}
+        style={styles.add}
+      >
+        + Criar novo caso
       </Button>
     
     </ScrollView>
@@ -214,21 +346,6 @@ const styles = StyleSheet.create({
     color: '#00000',
     marginBottom: 10,
   },
-  mapContainer:{
-    backgroundColor: '#777777',
-    borderRadius: 8,
-    overflow: 'hidden',
-    position: 'relative',
-    height: 200,
-    justifyContent: 'flex-end',
-  },
-  mapAddress:{
-    color: '#00000',
-    fontSize: 14,
-    padding:10,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    width:'100%',
-  },
   row:{
     flexDirection:'row',
     justifyContent: 'space-between',
@@ -238,21 +355,16 @@ const styles = StyleSheet.create({
     width:'40%',
   },
   pickerContainer: {
-  backgroundColor: '#fff',
-  borderRadius: 8,
-  paddingHorizontal: 15,
-  paddingVertical: 4,
-  shadowColor: '#000',
-  shadowOpacity: 0.2,
-  shadowRadius: 4,
-  elevation: 4,
-  marginBottom: 15,
-},
-picker: {
-  color: '#000', // cor do texto
-  height: 40,
-  fontSize:14,
-},
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  picker: {
+    color: '#000', // cor do texto visível
+    height: 60,
+    width: '100%',
+  },
   add: {
     alignSelf: 'flex-end',
     marginVertical: 15,
@@ -260,4 +372,5 @@ picker: {
     marginEnd: 15,
   },
 });
+
 export default CriarCasoScreen;
