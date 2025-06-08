@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Image, Platform } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { View, Text, TextInput,StyleSheet, TouchableOpacity, ScrollView, Image, Platform, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Button } from 'react-native-paper';
 import { Camera } from 'expo-camera';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {Button } from 'react-native-paper';
+import { Picker } from '@react-native-picker/picker';
+import * as Location from 'expo-location';
 
 export default function EvidenciaScreen() {
   const [titulo, setTitulo] = useState('');
@@ -20,69 +21,162 @@ export default function EvidenciaScreen() {
   const [image, setImage] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+  //integração com o back 
+  const handleSubmit = async() => {
+    try{
+      const formData = new FormData(); //formData suporta envio tanto dos dados quanto das imagens
+      // campos
+      formData.append('titulo', titulo);
+      formData.append('origem', origem);
+      formData.append('dataColeta', dataColeta.toISOString());
+      formData.append('responsavel', responsavel);
+      formData.append('categoria', categoria);
+      formData.append('condicao', condicao);
+      formData.append('vitima', vitima);
+      formData.append('localizacao', local);
+      formData.append('descricaoDetalhada', descricao);
+      formData.append('observacoesTecnicas', observacoes);
+      formData.append('status', 'Aberto');
+
+      // Adiciona a imagem se ela existir
+      if (image){// verifica a imagem foi ou não adicionada
+        const filename = image.split('/').pop();//extrai o nome do arquivo, pega o último elemento do array.
+       const match = /\.(\w+)$/.exec(filename || '');//diferencia o nome dos arquivos
+       const type = match ? `image/${match[1]}` : 'image';// verifica se a imagem existe se não retorna a fallback
+
+       formData.append('image', {//adiciona a imagem no formData
+        uri: image,
+        name: filename,
+        type,
+       });
+      }
+      const response = await fetch('https://backend-siop.onrender.com/api/evidences', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok){
+        Alert.alert('Evidência cadastrada');
+      } else {
+        throw new Error(data.message || 'Erro ao cadastra a evidência');
+      }
+    } catch (error){
+      Alert.alert('Erro', error.message);
+      console.error('Erro ao enviar evidência:', error)
+    }
+  };
+
+
+//geolocalização  
+  async function obterLocalizacao(){
+     try{
+       const {status} = await Location.requestForegroundPermissionsAsync();
+ 
+      if(status !== 'granted'){
+         Alert.alert('Permissão negada', 'Permissão para acessar localização foi negada.');
+         return;
+      }
+ 
+      const location = await Location.getCurrentPositionAsync({});
+      const {latitude, longitude} = location.coords;
+ 
+      // Obtém a partir da latitude e longitude
+      const editGeocode = await Location.reverseGeocodeAsync({
+         latitude,
+         longitude,
+      });
+ 
+      if (editGeocode.length > 0){
+         const place = editGeocode[0];
+ 
+         const enderecoComplet = `${place.formattedAddress}`;
+          setLocal(enderecoComplet);
+      }
+     } catch(error) {
+       Alert.alert('Erro', 'Não foi possível obter a localização.');
+       console.error(error);
+     }
+   }
+    useEffect(() => {
+      obterLocalizacao();
+  }, []);
+
+  //função para coletar a imagem 
   const handleTakePhoto = async() => {
     const premission = await Camera.requestCameraPermissionsAsync();
-    if(premission.granted){
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [4,3],
-        quality: 1,
-      });
-      if (!result.cancelled) {
-        setImage(result.assets[0].uri);
+
+      if(premission.granted){
+          const result = await ImagePicker.launchCameraAsync({
+          allowsEditing: true,
+          aspect:[4,3],
+          quality:1,
+        });
+
+        if (!result.canceled && result.assets.length > 0){
+          setImage(result.assets[0].uri);
+        }
+      } else { 
+      Alert.alert('Permissão negada')
+    }
+  };
+   //Formatação  para manipular data
+
+    const handleDataChange = (event, selectedDate) => {
+      setShowDatePicker(false);
+      if(selectedDate){
+        setDataColeta(selectedDate);
       }
-    }
-  };
+    };
 
-  const handleDataChange = (event, selectedDate) => {
-    setShowDatePicker(false);
-    if (selectedDate){setDataColeta(selectedDate);
-
-    }
-  };
   return(
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Numero da Evidência: <Text style={styles.link}>01</Text></Text>
       <Text style={styles.title}>Tipo de Evidência: <Text style={styles.link}>Foto</Text></Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleTakePhoto}>
-        <Text style={styles.buttonText}>Tirar Foto</Text>
-      </TouchableOpacity>
+      <Button
+      icon="camera" 
+      style={styles.button} 
+      labelStyle={styles.buttonText}
+      onPress={handleTakePhoto}>Captura Evidência
+      </Button>
 
       {image && (
         <Image source={{uri: image}} style={styles.image}/>
       )}
 
-      <View style={styles.inputGroup}>
+    <View style={styles.inputGroup}>
         <Text style={styles.label}>Título:</Text>
       <TextInput style={styles.input} placeholder="Título" value={titulo} onChangeText={setTitulo} />
+    </View>
+
+  <View style={styles.row}>
+      <View style={styles.whidth}>
+        <Text style={styles.label}>Origem:</Text>
+        <TextInput style={styles.input} placeholder="Origem" value={origem} onChangeText={setOrigem} />
       </View>
 
-      <View style={styles.row}>
-        <View style={styles.whidth}>
-          <Text style={styles.label}>Origem:</Text>
-          <TextInput style={styles.input} placeholder="Origem" value={origem} onChangeText={setOrigem} />
-        </View>
-
-        <View style={styles.whidth}>
+    <View style={styles.whidth}>
         <Text style={styles.label}>Data da coleta:</Text>
-        <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.input}>
-          <Text>{dataColeta.toDateString()}</Text>
-        </TouchableOpacity>
-        {showDatePicker && (
-          <DateTimePicker
-          value={dataColeta}
-          mode="datetime"
-          display={Platform.OS ==='ios' ? 'inline' : 'default'}
-          onChange={handleDataChange}
-          />
-        )}
-        
-      </View>
-      </View>
+          <TouchableOpacity
+            style={styles.input}
+            onPress={() => setShowDatePicker(true)}
+            ><Text>{dataColeta.toLocaleDateString('pt-BR')}</Text>
+          </TouchableOpacity>
+      {showDatePicker && (
+        <DateTimePicker
+        value={dataColeta}
+        mode="date"
+        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+        onChange={handleDataChange}
+        />
+      )}
+    </View>
+  </View>
 
 
-      <View style={styles.row}>
+    <View style={styles.row}>
         <View style={styles.whidth}>
           <Text style={styles.label}>Resposável:</Text>
           <TextInput style={styles.input} placeholder="responsavel" value={responsavel} onChangeText={setResponsavel} />
@@ -91,19 +185,20 @@ export default function EvidenciaScreen() {
           <Text style={styles.label}>Categoria:</Text>
           <TextInput style={styles.input} placeholder="categoria" value={categoria} onChangeText={setCategoria} />
         </View>
-      </View>
+    </View>
 
-      <View style={styles.row}>
+    <View style={styles.row}>
         <View style={styles.whidth}>
           <Text style={styles.label}>Condição:</Text>
           <View style={styles.picker}>
             <Picker
             selectedValue={condicao}
             onValueChange={setCondicao}
+            mode="dropdown"
             style={styles.bp}>
 
               <Picker.Item label="Selecione"value=""/>
-              <Picker.Item label="Bem Conservada"value=""/>
+              <Picker.Item label="Bem Conservada"value="Bem Conservada"/>
               <Picker.Item label="Danificada"value="Danificada"/>
               <Picker.Item label="Parcial"value="Parcial"/>
             </Picker>
@@ -115,35 +210,41 @@ export default function EvidenciaScreen() {
         </View>
       </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Local:</Text>
-      <TextInput style={styles.input} value={local} onChangeText={setLocal} />
-      </View>
+   <View style={styles.section}>
+       <View style={styles.inputGroup}>
+         <Text style={styles.label}>Local:</Text>
+         <TextInput
+           style={styles.input}
+           value={local}
+           onChangeText={setLocal}
+           placeholder="Obtendo localização..."
+        />
+       </View>
+    </View>
 
-      <Text style={styles.input}>Descrição detalhada:</Text>
-      <TextInput
-      style={styles.text}
-      multiline
-      value={descricao}
-      onChangeText={setDescricao}
-      />
+    <View style={styles.inputGroup}>
+        <Text style={styles.label}>Descrição detalhada:</Text>
+      <TextInput style={styles.input} multiline value={descricao} 
+      onChangeText={setDescricao} />
+    </View>
 
-      <Text style={styles.input}>Observações Técnicas:</Text>
-      <TextInput
-      style={styles.text}
-      multiline
-      value={observacoes}
-      onChangeText={setObservacoes}
-      />
+    <View style={styles.inputGroup}>
+        <Text style={styles.label}>Observações Técnicas:</Text>
+      <TextInput style={styles.input} multiline value={observacoes} onChangeText={setObservacoes} />
+    </View>
 
 
-      <Button
-        mode="contained"
-        onPress={() => navigation.navigate('Casos em andamento')}
-        style={styles.button}
-      >
-        + Criar novo caso
-      </Button>
+
+    <Button style={styles.button} 
+      labelStyle={styles.buttonText}
+      onPress={handleSubmit}
+      > + Salvar Evidência
+    </Button>
+
+    <Button style={styles.button} 
+      labelStyle={styles.buttonText}
+      > Gerar Laudo
+    </Button>
 
     </ScrollView>
   )
@@ -151,26 +252,19 @@ export default function EvidenciaScreen() {
 
 const styles= StyleSheet.create({
   container:{
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#f7f7f7',
     padding: 20,
   },
   title:{
-    fontSize: 24,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#000',
-    marginBottom: 20,
+    marginBottom: 15,
   },
   inputGroup:{
     marginBottom: 15,
     display: 'flex',
-  },
-  button: {
-    backgroundColor: '#007bff',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 12,
-    alignItems: 'center',
   },
   label:{
     fontSize:16,
@@ -199,35 +293,36 @@ const styles= StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 10,
   },
+  buttonText:{
+    color: '#fff',
+  },
   whidth:{
     width: '48%',
   },
   picker:{
-    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ccc',
     borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 4,
-    shadowColor:'#000',
-    shadowRadius: 0.2,
-    shadowRadius: 4,
-    marginBottom: 15,
+    marginBottom: 16,
   },
   bp:{
     color:'#000',
-    height:40,
+    height: 55,
     fontSize:14,
   },
   button: {
-  backgroundColor: '#145da0',
-  paddingVertical: 10,
-  paddingHorizontal: 16,
-  height: 50,
-  width: '30%',
-  borderRadius: 8,
-  marginTop: 20,
-  alignItems: 'center',
-  alignSelf: 'flex-end',
-  justifyContent: 'center',
+    backgroundColor: '#145da0',
+    paddingHorizontal: 16,
+    height: 50,
+    borderRadius: 8,
+    marginTop: 40,
+    alignSelf: 'flex-end',
+  },
+  image:{
+    width: '100%',
+    height: 200,
+    marginTop: 20,
+    borderRadius: 10,
   },
 
 });

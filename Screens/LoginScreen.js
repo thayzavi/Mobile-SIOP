@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     },
     subtitle:{
         color:'white',
-        fontSize: 12,
+        fontSize: 15,
         textAlign: 'center',
     },
     form:{

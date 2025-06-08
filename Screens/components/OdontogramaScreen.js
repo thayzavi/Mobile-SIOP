@@ -1,13 +1,16 @@
-import React, { use, useState } from 'react';
+import React, {  useState } from 'react';
 import { View, ScrollView, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { Text, Button, RadioButton, useTheme } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const dentesNumeros = [
   [18,17,16,15,14,13,12,11], 
-  [48,47,46,45,44,43,42,41] 
+  [21,22,23,24,25,26,27,28],
+  [48,47,46,45,44,43,42,41],
+  [31,32,33,34,35,36,37,38]
 ];
 
-const statusOptions = [
+const statusOptions = [//status do dente
   'Saudável',
   'Cárie',
   'Quebrado',
@@ -15,45 +18,58 @@ const statusOptions = [
   'Tratado',
 ];
 
-export default function Odontograma(){
+export default function ({Odontograma ,setOdontograma}){
   const {colors} = useTheme();
+
+  
 
   const [modalVisible, setModallVisible] = useState(false);
   const [denteSelecionado, setDenteSelecionado] = useState(null);
   const [statusSelecionado , setSelecionado] = useState('');
+
+
   const [statusDosDentes, setStatusDentes] = useState({});
 
-  function abriModal(dente){
+  function abrirModal(dente){
     setDenteSelecionado(dente);
     setSelecionado(statusDosDentes[dente] || '');
     setModallVisible(true);
   }
 
-  function confimarStatus(){
-    setStatusDentes(prev => ({ ...prev, [denteSelecionado]: statusSelecionado }));
-    setModallVisible(false);
-    setDenteSelecionado(null);
-    setSelecionado('');
-  }
+  function confirmarStatus(){
+  const novoStatus = {...statusDosDentes, [denteSelecionado]: statusSelecionado};
+  setStatusDentes(novoStatus);
+  setModallVisible(false);
+  setOdontograma(novoStatus);
+  setDenteSelecionado(null);
+  setSelecionado('');
+}
 
   return(
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={[styles.title, {color: colors.primary}]}>Odontograma</Text>
+      <Text style={[styles.title, {color: "#000"}]}>Informações dentaria</Text>
 
-      {dentesNumeros.map((linha, i) => (
+
+        {/* array que percorre as fileiras dos dentes {i}=indice de cada linha */}
+       {dentesNumeros.map((linha, i) => ( 
         <View key={i} style={styles.linhaDentes}>
+            {/* tranformando cada número clicável */}
           {linha.map(dente => (
             <TouchableOpacity
             key={dente}
             style={[
               styles.dente,
-              {
+              { //altera a cor de fundo quando um dente e selecionado 
                 borderColor: statusDosDentes[dente] ? colors.primary: '#ccc',
                 backgroundColor: statusDosDentes[dente] ? '#def' : '#fff',
               }
             ]}
-            onPress={() => abriModal(dente)}>
-              <Text style={styles.numeroDente}>{dente}</Text>
+            // Abre o madal para adiciona o status
+            onPress={() => abrirModal(dente)}>
+              <View style={styles.iconDente}>
+                <Icon name="tooth" size={24} color="#8c8c8c"/>
+                <Text style={styles.numeroDente}>{dente}</Text>
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -73,7 +89,7 @@ export default function Odontograma(){
             </RadioButton.Group>
           <Button
           mode="contained"
-          onPress={confimarStatus}
+          onPress={confirmarStatus}
           disabled={!statusSelecionado}
           style={{ marginTop: 20}}>Confirmar
           </Button>
@@ -105,12 +121,6 @@ export default function Odontograma(){
       padding: 16,
       paddingBottom: 60,
     },
-    title:{
-      fontSize: 24,
-      fontWeight:'bold',
-      marginBottom: 20,
-      textAlign: 'center',
-    },
     linhaDentes:{
       flexDirection: 'row',
       justifyContent: 'space-around',
@@ -120,10 +130,8 @@ export default function Odontograma(){
       width: 40,
       height: 40,
       borderRadius: 20,
-      borderWidth: 2,
       justifyContent: 'center',
       alignItems: 'center',
-      color: '#000',
     },
     modalfundo:{
       flex: 1,
@@ -136,11 +144,15 @@ export default function Odontograma(){
       borderRadius:12,
       padding:20,
       elevation: 5,
-      backgroundColor: '#145da0',
+      backgroundColor: 'rgb(0, 88, 170)',
     },
     numeroDente:{
       fontWeight: 'bold',
       color: '#000',
+    },
+    iconDente:{
+      justifyContent:'center',
+      alignItems: 'center',
     },
     title:{
       fontSize: 20,
