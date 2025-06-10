@@ -1,12 +1,45 @@
 import React from 'react';
-import { View, StyleSheet, ImageBackground } from 'react-native';
-import { Text, TextInput, Button, useTheme } from 'react-native-paper';
+import { View, StyleSheet, Alert } from 'react-native';
+import { Text, TextInput, Button} from 'react-native-paper';
 
 export default function LoginScreen({navigation}) {
-    const [email, setEmail] = React.useState("");
-    const [senha, setSenha] = React.useState("");
-    const {colors} = useTheme();
+    const [email, setEmail] = React.useState('');
+    const [senha, setSenha] = React.useState('');
+    const [isLoading, setIsLoading] = React.useState(false);
 
+    const handleChange = async() => {
+        if(! email || !senha) {
+            Alert.alert('Preencha todos os campo');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try{
+            //simulação da chamada da api - teste 
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const resposta = {
+            success: true,
+            userType: 'admin' //resposta do back, se o user vai ser adm, perito ou assistente.
+           
+        };
+
+        if (resposta.success) {
+            if (resposta.userType === 'admin'){
+                navigation.replace('AdminTabs');
+            } else {
+                navigation.replace('PeritoTabs');
+            }
+         } else {
+            Alert.alert('Erro', 'Credenciais inválidas');
+            }  
+        } catch (error) {
+            Alert.alert('Error, Falha na conexão');
+        } finally{
+            setIsLoading(false);
+        }
+    };
     return(
         <View style={styles.container}>
             <View style={styles.header}>
@@ -34,8 +67,15 @@ export default function LoginScreen({navigation}) {
                 onChangeText={setSenha}
                 style={styles.input}></TextInput>
 
-                <Button mode="contained" onPress={() => navigation.navigate('Home')} 
-                style={styles.button}> Login </Button>
+                <Button 
+                    mode="contained" 
+                    onPress={handleChange} 
+                    loading={isLoading}
+                    disabled={isLoading}
+                    style={styles.button}>
+                    {isLoading ? 'Carregando..' : 'Login'}
+                    
+                </Button>
             </View>
         </View>
     )

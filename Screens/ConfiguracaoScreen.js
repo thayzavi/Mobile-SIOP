@@ -1,12 +1,22 @@
-import React, { use, useState } from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, Image, TextInput, ScrollView } from 'react-native';
+import { Button } from 'react-native-paper';
 import { Text} from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+
 
 export default function Config () {
+
+  const navigation = useNavigation();
+
   const [nome, setNome] = useState('');
   const [endereco, setEndereco] = useState('');
   const [email, setEmail] = useState('');
   const [cro, setCro] = useState('');
+
+  const handleLogout = () => {
+    navigation.replace('Login'); // Redireciona para tela de login
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -52,6 +62,15 @@ export default function Config () {
            value={email} 
            onChangeText={setEmail} />
       </View>
+
+      <Button
+        mode="contained"
+        onPress={handleLogout}
+        style={styles.logoutButton}
+        labelStyle={{ color: '#fff' }}
+      >
+        Sair
+      </Button>
 
 
     </ScrollView>
@@ -103,5 +122,13 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     alignSelf: 'center',
     marginVertical: 16,
+  },
+  logoutButton: {
+    marginTop: 40,
+    backgroundColor: '#C0392B',
+    padding: 8,
+    borderRadius: 8,
+    marginInlineEnd: 'auto',
+    marginLeft: '85%',
   },
 });

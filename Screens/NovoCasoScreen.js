@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import {View,Text, Alert, TextInput, StyleSheet, ScrollView, Platform, TouchableOpacity} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import {Button } from 'react-native-paper';
-import Odontograma from './components/OdontogramaScreen';
-import * as Location from 'expo-location';
+import Odontograma from './components/Odontograma';
+import DataHora from './components/DataHora';
+import LocalMap from './components/LocalMap';
+
 
 
 function CriarCasoScreen({ navigation }) {
+  const [NIC, setNIC] = useState('');
   const [nomeCaso, setNomeCaso] = useState('');
   const [responsavel, setResponsavel] = useState('');
   const [informacoes, setInformacoes] = useState('');
@@ -16,67 +18,19 @@ function CriarCasoScreen({ navigation }) {
   const [sexoVitima, setSexoVitima] = useState('');
   const [causaMorte, setCausaMorte] = useState('');
   const [corPele, setCorPele] = useState('');
+  const [statusCaso , setstatusCaso] = useState('');
   const [identificacao, setIdentificacao] = useState('');
-
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
   const [hora, setHora] = useState(new Date());
   const [data, setData] = useState(new Date());
 
   const [OdontogramaData, setOdontogramaData] = useState({});
 
 
-  async function obterLocalizacao(){
-    try{
-      const {status} = await Location.requestForegroundPermissionsAsync();
-
-      if(status !== 'granted'){
-        Alert.alert('Permissão negada', 'Permissão para acessar localização foi negada.');
-        return;
-      }
-
-      const location = await Location.getCurrentPositionAsync({});
-      const {latitude, longitude} = location.coords;
-
-      // Obtém a partir da latitude e longitude
-      const editGeocode = await Location.reverseGeocodeAsync({
-        latitude,
-        longitude,
-      });
-
-      if (editGeocode.length > 0){
-        const place = editGeocode[0];
-
-        const enderecoComplet = `${place.formattedAddress}`;
-         setEndereco(enderecoComplet);
-      }
-    } catch(error) {
-      Alert.alert('Erro', 'Não foi possível obter a localização.');
-      console.error(error);
-    }
-  }
-  useEffect(() => {
-    obterLocalizacao();
-  }, []);
-
-  //Formatação da hora para manipular data
-
-  const handleDataChange = (event, selectedDate) => {
-    setShowDatePicker(false);
-    if(selectedDate){
-      setData(selectedDate);
-    }
-  };
-
-  const handleTimeChange = (event, selectedTime) => {
-    setShowTimePicker(false);
-    if(selectedTime){
-      setHora(selectedTime);
-    }
-  };
+  
 
   const criarCaso = async () => {
   const novoCaso = {
+    NIC,
     nomeCaso,
     responsavel,
     informacoes,
@@ -87,6 +41,7 @@ function CriarCasoScreen({ navigation }) {
     sexoVitima,
     causaMorte,
     corPele,
+    statusCaso,
     identificacao,
     odontograma: OdontogramaData,
   };
@@ -129,6 +84,17 @@ function CriarCasoScreen({ navigation }) {
           <Picker.Item label="Não identificado" value="nao_identificado" />
         </Picker>
       </View>
+      {/* NIC da vitima */}
+
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>NIC:</Text>
+      <TextInput
+      style={styles.input}
+      value={NIC}
+      onChangeText={setNIC}
+      placeholder="NIC da vitíma"
+      />
+    </View>
     
     {/* campo nome do caso */}
     <View style={styles.inputGroup}>
@@ -155,16 +121,13 @@ function CriarCasoScreen({ navigation }) {
 
     {/* local */}
   <View style={styles.section}>
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}>Local:</Text>
-      <TextInput
-        style={styles.input}
-        value={endereco}
-        onChangeText={setEndereco}
-        placeholder="Obtendo localização..."
-     />
-    </View>
-  </View>
+  <LocalMap
+    onLocationUpdate={(locationData) => {
+      setEndereco(locationData.endereco);
+    }}
+    mapStyle={styles.map}
+  />
+</View>
 
     {/* informações */}
     <View style={styles.inputGroup}>
@@ -196,6 +159,7 @@ function CriarCasoScreen({ navigation }) {
         <Picker
         selectedValue={sexoVitima}
         onValueChange={(itemValue) => setSexoVitima(itemValue)}
+        mode="dropdown"
         style={styles.picker}>
           <Picker.Item label="Sexo" value=""/>
           <Picker.Item label="Feminino" value="Feminino"/>
@@ -208,6 +172,7 @@ function CriarCasoScreen({ navigation }) {
           <Picker
           selectedValue={corPele}
           onValueChange={(itemValue) => setCorPele(itemValue)}
+          mode="dropdown"
           style={styles.picker}>
             <Picker.Item label="cor de pele" value=""/>
             <Picker.Item label="Branca" value="Branca"/>
@@ -220,51 +185,49 @@ function CriarCasoScreen({ navigation }) {
         </View>
     
     {/* div data e hora */}
-    <View style={styles.row}>
+      <View style={styles.row}>
+        <View style={[styles.inputGroup, styles.width]}>
+          <DataHora
+            mode="date"
+            onDateChange={(newDate) => setData(newDate)}
+            initialDate={data}
+            containerStyle={styles.pickerContainer}
+            buttonStyle={styles.dateTimeButton}
+            textStyle={styles.dateTimeText}
+          />
+        </View>
+  
+        <View style={[styles.inputGroup, styles.width]}>
+            <DataHora
+              mode="time"
+              onTimeChange={(newTime) => setHora(newTime)}
+              initialDate={hora}
+              containerStyle={styles.pickerContainer}
+              buttonStyle={styles.dateTimeButton}
+              textStyle={styles.dateTimeText}
+            />
+          </View>
+      </View>
+            
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={statusCaso}
+          onValueChange={setstatusCaso}
+          mode="dropdown"
+          style={styles.picker}>
+          
+          <Picker.Item label="Status do caso" value="" />
+          <Picker.Item label="Aberto" value="Aberto" />
+          <Picker.Item label="Fechado" value="Fechado" />
+          <Picker.Item label="Em andamento" value="Em_andamento" />
+          <Picker.Item label="Concluído" value="Concluído" />
 
-      <View style={[styles.inputGroup, styles.width]}>
-        <Text style={styles.label}>Hora:</Text>
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowTimePicker(true)}
-          ><Text>{hora.toLocaleTimeString('pt-br', 
-          {hour: '2-digit',
-          minute: '2-digit'})}
-          </Text>
-        </TouchableOpacity>
+        </Picker>
       </View>
 
-      
-      <View style={[styles.inputGroup, styles.width]}>
-        <Text style={styles.label}>Data:</Text>
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowDatePicker(true)}
-          ><Text>{data.toLocaleDateString('pt-BR')}</Text>
-        </TouchableOpacity>
-      </View>
 
-         {showDatePicker && (
-          <DateTimePicker
-          value={data}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleDataChange}
-          />
-        )}
-
-        {showTimePicker && (
-          <DateTimePicker
-          value={hora}
-          mode="time"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleTimeChange}
-          />
-        )} 
-    </View>
-      
       {/* causa da morte */}
-      <View style={styles.inputGroup}>
+    <View style={styles.inputGroup}>
       <Text style={styles.label}> Causa da morte:</Text>
       <TextInput
       style={styles.input}
@@ -281,14 +244,7 @@ function CriarCasoScreen({ navigation }) {
       <Odontograma odontograma={OdontogramaData} setOdontograma={setOdontogramaData} />
     </View>
 
-    {/* btn evidencia */}
-    <Button
-        mode="contained"
-        onPress={() => navigation.navigate('Evidencia')}
-        style={styles.add}
-      >
-        + Adiciona evidência
-      </Button>
+    {/* btn */}
     <Button
         mode="contained"
         onPress={criarCaso}

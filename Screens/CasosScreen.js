@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
+import { Alert, View, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
 import { Text, Button, Card, Chip } from 'react-native-paper';
 
 const corStatus = {
@@ -30,6 +30,29 @@ export default function CasosScreen({ navigation }) {
     fetchCases();
   }, []);
 
+   const handleDelete = async (id) => {
+    try {
+      await fetch(`https://backend-siop.onrender.com/api/cases/${id}`, {
+        method: 'DELETE',
+      });
+      setCases((prevCases) => prevCases.filter((caso) => caso._id !== id));
+    } catch (error) {
+      console.error('Erro ao deletar caso:', error);
+    }
+  };
+
+  const confirmDelete = (id) => {
+    Alert.alert(
+      "Confirmar exclusão",
+      "Tem certeza que deseja deletar este caso?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Deletar", onPress: () => handleDelete(id), style: "destructive" }
+      ]
+    );
+  };
+
+
   const renderItem = ({ item }) => (
     <Card style={styles.card}>
       <View style={styles.conteudo}>
@@ -45,7 +68,15 @@ export default function CasosScreen({ navigation }) {
           >
             <Text style={{ color: '#145da0' }}>Ver detalhes</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => confirmDelete(item._id)}
+            style={styles.deletar}
+          >
+            <Text style={styles.btnDelet}>Deletar</Text>
+          </TouchableOpacity>
         </View>
+        
         <Chip
           style={[styles.chip, { backgroundColor: corStatus[item.status] || '#ccc' }]}
           textStyle={styles.textChip}
@@ -133,7 +164,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     alignSelf: 'flex-start',
-    height: 30,
+    height: 35,
     marginLeft: 10,
   },
   textChip: {
@@ -141,5 +172,10 @@ const styles = StyleSheet.create({
   },
   detalhes: {
     marginTop: 8,
+  },
+   btnDelet: {
+    marginTop: 5,
+    color: '#C0392B',
+    marginInlineEnd:5,
   },
 });

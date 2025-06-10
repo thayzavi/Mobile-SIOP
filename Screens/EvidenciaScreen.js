@@ -3,9 +3,10 @@ import { View, Text, TextInput,StyleSheet, TouchableOpacity, ScrollView, Image, 
 import * as ImagePicker from 'expo-image-picker';
 import { Button } from 'react-native-paper';
 import { Camera } from 'expo-camera';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
-import * as Location from 'expo-location';
+import DataHora from './components/DataHora';
+import LocalMap from './components/LocalMap';
+
 
 export default function EvidenciaScreen() {
   const [titulo, setTitulo] = useState('');
@@ -18,8 +19,8 @@ export default function EvidenciaScreen() {
   const [local, setLocal] = useState('');
   const [descricao, setDescricao] = useState('');
   const [observacoes, setObservacoes] = useState('');
+  const [tipo, setTipo] = useState('');
   const [image, setImage] = useState(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
 
   //integração com o back 
   const handleSubmit = async() => {
@@ -36,13 +37,13 @@ export default function EvidenciaScreen() {
       formData.append('localizacao', local);
       formData.append('descricaoDetalhada', descricao);
       formData.append('observacoesTecnicas', observacoes);
-      formData.append('status', 'Aberto');
+      formData.append('tipo', tipo);
 
       // Adiciona a imagem se ela existir
       if (image){// verifica a imagem foi ou não adicionada
         const filename = image.split('/').pop();//extrai o nome do arquivo, pega o último elemento do array.
        const match = /\.(\w+)$/.exec(filename || '');//diferencia o nome dos arquivos
-       const type = match ? `image/${match[1]}` : 'image';// verifica se a imagem existe se não retorna a fallback
+       const type = match ? `image/${match[1]}` : 'image';// verifica se a imagem existe, se não retorna a fallback
 
        formData.append('image', {//adiciona a imagem no formData
         uri: image,
@@ -50,7 +51,7 @@ export default function EvidenciaScreen() {
         type,
        });
       }
-      const response = await fetch('https://backend-siop.onrender.com/api/evidences', {
+      const response = await fetch(`https://backend-siop.onrender.com/api/cases/${caseId}/evidences/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -67,41 +68,6 @@ export default function EvidenciaScreen() {
       console.error('Erro ao enviar evidência:', error)
     }
   };
-
-
-//geolocalização  
-  async function obterLocalizacao(){
-     try{
-       const {status} = await Location.requestForegroundPermissionsAsync();
- 
-      if(status !== 'granted'){
-         Alert.alert('Permissão negada', 'Permissão para acessar localização foi negada.');
-         return;
-      }
- 
-      const location = await Location.getCurrentPositionAsync({});
-      const {latitude, longitude} = location.coords;
- 
-      // Obtém a partir da latitude e longitude
-      const editGeocode = await Location.reverseGeocodeAsync({
-         latitude,
-         longitude,
-      });
- 
-      if (editGeocode.length > 0){
-         const place = editGeocode[0];
- 
-         const enderecoComplet = `${place.formattedAddress}`;
-          setLocal(enderecoComplet);
-      }
-     } catch(error) {
-       Alert.alert('Erro', 'Não foi possível obter a localização.');
-       console.error(error);
-     }
-   }
-    useEffect(() => {
-      obterLocalizacao();
-  }, []);
 
   //função para coletar a imagem 
   const handleTakePhoto = async() => {
@@ -121,14 +87,6 @@ export default function EvidenciaScreen() {
       Alert.alert('Permissão negada')
     }
   };
-   //Formatação  para manipular data
-
-    const handleDataChange = (event, selectedDate) => {
-      setShowDatePicker(false);
-      if(selectedDate){
-        setDataColeta(selectedDate);
-      }
-    };
 
   return(
     <ScrollView contentContainerStyle={styles.container}>
@@ -146,6 +104,23 @@ export default function EvidenciaScreen() {
         <Image source={{uri: image}} style={styles.image}/>
       )}
 
+       <View style={styles.whidth}>
+          <Text style={styles.label}>Tipo Evidência</Text>
+          <View style={styles.picker}>
+            <Picker
+            selectedValue={tipo}
+            onValueChange={setTipo}
+            mode="dropdown"
+            style={styles.bp}>
+
+              <Picker.Item label="Selecione o tipo de evidência"value=""/>
+              <Picker.Item label="Foto"value="foto"/>
+              <Picker.Item label="Texto"value="texto"/>
+              <Picker.Item label="Arquivo"value="arquivo"/>
+            </Picker>
+          </View>
+       </View>
+
     <View style={styles.inputGroup}>
         <Text style={styles.label}>Título:</Text>
       <TextInput style={styles.input} placeholder="Título" value={titulo} onChangeText={setTitulo} />
@@ -158,22 +133,18 @@ export default function EvidenciaScreen() {
       </View>
 
     <View style={styles.whidth}>
-        <Text style={styles.label}>Data da coleta:</Text>
-          <TouchableOpacity
-            style={styles.input}
-            onPress={() => setShowDatePicker(true)}
-            ><Text>{dataColeta.toLocaleDateString('pt-BR')}</Text>
-          </TouchableOpacity>
-      {showDatePicker && (
-        <DateTimePicker
-        value={dataColeta}
-        mode="date"
-        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-        onChange={handleDataChange}
-        />
-      )}
-    </View>
-  </View>
+          <Text style={styles.label}>Data da coleta:</Text>
+          <DataHora
+            mode="date"
+            onDateChange={(newDate) => setDataColeta(newDate)}
+            initialDate={dataColeta}
+            containerStyle={styles.pickerContainer}
+            buttonStyle={styles.dateTimeButton}
+            textStyle={styles.dateTimeText}
+          />
+        </View>
+      </View>
+
 
 
     <View style={styles.row}>
@@ -211,16 +182,13 @@ export default function EvidenciaScreen() {
       </View>
 
    <View style={styles.section}>
-       <View style={styles.inputGroup}>
-         <Text style={styles.label}>Local:</Text>
-         <TextInput
-           style={styles.input}
-           value={local}
-           onChangeText={setLocal}
-           placeholder="Obtendo localização..."
+        <LocalMap
+          onLocationUpdate={(locationData) => {
+            setLocal(locationData.endereco);
+          }}
+          mapStyle={styles.map}
         />
-       </View>
-    </View>
+      </View>
 
     <View style={styles.inputGroup}>
         <Text style={styles.label}>Descrição detalhada:</Text>
@@ -273,7 +241,7 @@ const styles= StyleSheet.create({
   },
   input:{
     backgroundColor: '#fff',
-    colo: '#0000',
+    colo: '#000',
     borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical:12,
@@ -282,6 +250,9 @@ const styles= StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius:4,
     elevation: 4,
+  },
+  link:{
+    color: '#0A4A81',
   },
   text:{
     height: 100,
