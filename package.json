@@ -37,8 +37,13 @@
     "react-native-toast-message": "^2.3.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0",
+<<<<<<< HEAD
     "react-native-webview": "13.13.5",
     "yarn": "^1.22.22"
+=======
+    "yarn": "^1.22.22",
+    "react-native-webview": "13.13.5"
+>>>>>>> 4ef7ea74283fed7ad9ff0ac1042b64fb8aed286b
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
