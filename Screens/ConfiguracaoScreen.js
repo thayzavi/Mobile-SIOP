@@ -129,6 +129,6 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     marginInlineEnd: 'auto',
-    marginLeft: '85%',
+    marginLeft: '80%',
   },
 });

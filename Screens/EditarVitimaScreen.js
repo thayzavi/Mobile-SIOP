@@ -125,7 +125,7 @@ export default function EditarVitimaScreen({ route, navigation }) {
           onChangeText={setNome}
           style={styles.input}
         />
-
+      <View style={styles.row}>
         <Menu
           visible={sexoMenuVisible}
           onDismiss={() => setSexoMenuVisible(false)}
@@ -150,31 +150,7 @@ export default function EditarVitimaScreen({ route, navigation }) {
             />
           ))}
         </Menu>
-
-        <Menu
-          visible={corEtniaMenuVisible}
-          onDismiss={() => setCorEtniaMenuVisible(false)}
-          anchor={
-            <Button
-              mode="outlined"
-              onPress={() => setCorEtniaMenuVisible(true)}
-              style={styles.menuButton}
-            >
-              {corEtnia || 'Selecione a Cor/Etnia'}
-            </Button>
-          }
-        >
-          {corEtniaOptions.map((c) => (
-            <Menu.Item
-              key={c}
-              onPress={() => {
-                setCorEtnia(c);
-                setCorEtniaMenuVisible(false);
-              }}
-              title={c}
-            />
-          ))}
-        </Menu>
+      </View>
 
         <TextInput
           label="Data de Nascimento"
@@ -227,39 +203,97 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F2F4F8',
   },
   content: {
-    padding: 20,
+    flex: 1,
+    padding: 24,
+    paddingTop: 16,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#145da0',
-    marginBottom: 20,
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#145DA0',
+    marginBottom: 24,
+    letterSpacing: 0.5,
   },
   input: {
-    marginBottom: 10,
+    marginBottom: 16,
     backgroundColor: 'white',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    paddingHorizontal: 14,
+    height: 55,
+    fontSize: 16,
+    elevation: 2,
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   menuButton: {
-    marginBottom: 10,
+    height: 50,
+    borderColor: '#E0E0E0',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    backgroundColor: 'white',
+    marginBottom: 16,
+    justifyContent: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   buttonContainer: {
-    marginTop: 20,
-    gap: 10,
+    marginTop: 24,
+    gap: 12,
   },
   button: {
-    marginBottom: 10,
+    height: 50,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   saveButton: {
     backgroundColor: '#4CAF50',
   },
   errorText: {
     color: '#B00020',
-    marginBottom: 10,
+    marginBottom: 12,
+    fontSize: 14,
+    textAlign: 'center',
   },
   successText: {
-    color: '#4CAF50',
-    marginBottom: 10,
+    color: '#2E7D32',
+    marginBottom: 12,
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  // Adicionei alguns estilos extras que podem ser úteis
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  menuButtonText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'left',
+  },
+  label: {
+    fontSize: 14,
+    color: '#616161',
+    marginBottom: 6,
+    fontWeight: '500',
   },
 }); 

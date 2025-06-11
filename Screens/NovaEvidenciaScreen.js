@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView, Image } from 'react-native';
 import { TextInput, Button, Text, HelperText, Menu, Divider } from 'react-native-paper';
 import { casesAPI } from '../services/api';
 import * as ImagePicker from 'expo-image-picker';
+import LocalMap from '../Screens/components/LocalMap';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const tiposEvidencia = [
@@ -304,6 +305,16 @@ export default function NovaEvidenciaScreen({ route, navigation }) {
           ))}
         </Menu>
 
+        <View style={styles.section}>
+        <Text style={styles.label}>Localização:*</Text>
+        <LocalMap
+          onLocationUpdate={(locationData) => {
+            setLocalizacao(locationData.endereco);
+          }}
+          mapStyle={styles.map}
+        />
+      </View>
+
         {/* Origem */}
         <Menu
           visible={origemMenuVisible}
@@ -320,6 +331,7 @@ export default function NovaEvidenciaScreen({ route, navigation }) {
         >
           {origensEvidencia.map((o) => (
             <Menu.Item
+            
               key={o}
               onPress={() => {
                 setOrigem(o);
@@ -329,6 +341,7 @@ export default function NovaEvidenciaScreen({ route, navigation }) {
             />
           ))}
         </Menu>
+
 
         {/* Condição */}
         <Menu
@@ -382,12 +395,6 @@ export default function NovaEvidenciaScreen({ route, navigation }) {
           ))}
         </Menu>
 
-        <TextInput
-          label="Localização"
-          value={localizacao}
-          onChangeText={setLocalizacao}
-          style={styles.input}
-        />
 
         <TextInput
           label="Conteúdo"
@@ -430,7 +437,7 @@ export default function NovaEvidenciaScreen({ route, navigation }) {
           <Button
             mode="outlined"
             onPress={() => navigation.goBack()}
-            style={styles.button}
+            style={styles.btn}
             disabled={loading}
           >
             Cancelar
@@ -456,11 +463,23 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
-    marginBottom: 10,
-    backgroundColor: 'white',
+   flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 12,
+    paddingHorizontal: 12,
+    backgroundColor: '#fff',
+    height: 50,
   },
   menuButton: {
-    marginBottom: 10,
+    height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 9,
+    backgroundColor: 'white',
+    marginBottom:10,
   },
   buttonContainer: {
     marginTop: 20,
@@ -468,6 +487,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginBottom: 10,
+    backgroundColor: '#2A5D90'
   },
   errorText: {
     color: '#B00020',
@@ -498,5 +518,8 @@ const styles = StyleSheet.create({
   },
   imageButton: {
     marginBottom: 10,
+  },
+  map:{
+    marginBottom:10,
   },
 }); 

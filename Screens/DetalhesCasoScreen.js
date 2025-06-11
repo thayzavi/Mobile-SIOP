@@ -245,18 +245,7 @@ export default function DetalhesCasoScreen({ route, navigation }) {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Tabs de navegação */}
-      <View style={styles.tabs}>
-        <Button mode="text" onPress={() => navigation.navigate('Detalhes caso', { casoId })} style={styles.tabButton} labelStyle={styles.tabText}>
-          1 Informações Básicas
-        </Button>
-        <Button mode="text" onPress={() => navigation.navigate('Lista de evidência', { casoId })} style={styles.tabButton} labelStyle={styles.tabText}>
-          2 Evidências
-        </Button>
-        <Button mode="text" onPress={() => navigation.navigate('Lista de vitima', { casoId })} style={styles.tabButton} labelStyle={styles.tabText}>
-          3 Vítimas
-        </Button>
-      </View>
+
 
       <Divider style={{ marginVertical: 4, backgroundColor: '#145da0' }} />
 
@@ -508,6 +497,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     backgroundColor: '#f5f5f5',
     padding: 12,
+    color: '#000',
   },
   tabs: {
     flexDirection: 'row',
@@ -520,7 +510,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 17,
     color: '#145da0',
     fontWeight: 'bold',
   },
@@ -534,6 +524,7 @@ const styles = StyleSheet.create({
   card: {
     margin: 10,
     elevation: 2,
+    backgroundColor:'#fff',
   },
   sectionTitle: {
     fontSize: 18,

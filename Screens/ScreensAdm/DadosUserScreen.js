@@ -4,15 +4,12 @@ import axios from 'axios';
 
 const DadosUsuario = ({ route, navigation }) => {
   const { usersId } = route.params;
+  
   const [formData, setFormData] = useState({
-    cro: '',
-    cpf: '',
-    name: '',
+    nome: '',
     email: '',
-    senha: '',
-    data: '',
-    numero: '',
-    endereco: '',
+    role: '',
+    senha: '', 
   });
 
   useEffect(() => {
@@ -25,14 +22,10 @@ const DadosUsuario = ({ route, navigation }) => {
       const user = response.data;
 
       setFormData({
-        cro: user.cro || '',
-        cpf: user.cpf || '',
-        name: user.name || '',
+        nome: user.nome || '',
         email: user.email || '',
-        senha: user.senha || '',
-        data: user.data || '',
-        numero: user.numero || '',
-        address: user.address || '',
+        senha: '', 
+        role: user.role || '',
       });
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível carregar os dados do usuário.');
@@ -55,26 +48,11 @@ const DadosUsuario = ({ route, navigation }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.label}>CRO:</Text>
-        <TextInput
-          style={styles.cro}
-          value={formData.cro}
-          onChangeText={(text) => handleChange('cro', text)}
-        />
-       
-
-      <Text style={styles.label}>CPF:</Text>
-      <TextInput
-        style={styles.input}
-        value={formData.cpf}
-        onChangeText={(text) => handleChange('cpf', text)}
-      />
-
       <Text style={styles.label}>Nome:</Text>
       <TextInput
         style={styles.input}
-        value={formData.name}
-        onChangeText={(text) => handleChange('name', text)}
+        value={formData.nome}
+        onChangeText={(text) => handleChange('nome', text)}
       />
 
       <Text style={styles.label}>E-mail:</Text>
@@ -85,7 +63,15 @@ const DadosUsuario = ({ route, navigation }) => {
         keyboardType="email-address"
       />
 
-      <Text style={styles.label}>Senha:</Text>
+      <Text style={styles.label}>Cargo:</Text>
+      <TextInput
+        style={styles.input}
+        value={formData.role}
+        onChangeText={(text) => handleChange('role', text)}
+      />
+
+      {/* Se quiser permitir redefinir senha */}
+      <Text style={styles.label}>Nova Senha:</Text>
       <TextInput
         style={styles.input}
         value={formData.senha}
@@ -93,35 +79,8 @@ const DadosUsuario = ({ route, navigation }) => {
         secureTextEntry
       />
 
-      <View style={styles.row}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.label}>Data nascimento:</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.data}
-            onChangeText={(text) => handleChange('data', text)}
-          />
-        </View>
-        <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={styles.label}>Telefone:</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.telefone}
-            onChangeText={(text) => handleChange('telefone', text)}
-            keyboardType="phone-pad"
-          />
-        </View>
-      </View>
-
-      <Text style={styles.label}>Endereço:</Text>
-      <TextInput
-        style={styles.input}
-        value={formData.endereco}
-        onChangeText={(text) => handleChange('endereco', text)}
-      />
-
       <TouchableOpacity style={styles.button} onPress={handleUpdate}>
-        <Text style={styles.buttonText}>Editar</Text>
+        <Text style={styles.buttonText}>Salvar Alterações</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -161,7 +120,7 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 8,
     marginTop: 20,
-    marginLeft: '89%',
+    marginLeft: '60%',
     marginInlineEnd:'auto',
   },
   buttonText: { color: '#fff', fontWeight: 'bold' },

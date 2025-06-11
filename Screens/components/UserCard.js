@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 16,
-    width: '23%',
+    width: '48%',
   },
   badgeText: {
     color: '#fff', 

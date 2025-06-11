@@ -156,6 +156,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingBottom: 40,
+    marginTop: 50,
     backgroundColor: '#F2F4F8',
   },
   title: {

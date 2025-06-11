@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Image } from 'react-native';
 import { TextInput, Button, Text, HelperText, Menu } from 'react-native-paper';
 import { casesAPI } from '../services/api';
+import LocalMap from '../Screens/components/LocalMap'
 import * as ImagePicker from 'expo-image-picker';
 
 const tiposEvidencia = ['Imagem', 'Texto'];
@@ -206,6 +207,32 @@ export default function EditarEvidenciaScreen({ route, navigation }) {
 
         {/* Upload de Imagem */}
         <View style={styles.imageContainer}>
+            <View style={styles.row}>
+          <Menu
+          visible={statusMenuVisible}
+          onDismiss={() => setStatusMenuVisible(false)}
+          anchor={
+            <Button
+              mode="outlined"
+              onPress={() => setStatusMenuVisible(true)}
+              style={styles.menuButton}
+            >
+              {status || 'Selecione o Status'}
+            </Button>
+          }
+        >
+          {statusEvidencia.map((s) => (
+            <Menu.Item
+              key={s}
+              onPress={() => {
+                setStatus(s);
+                setStatusMenuVisible(false);
+              }}
+              title={s}
+            />
+          ))}
+        </Menu>
+    </View>
           {image ? (
             <Image source={{ uri: image.uri }} style={styles.image} />
           ) : imageUrl ? (
@@ -222,8 +249,44 @@ export default function EditarEvidenciaScreen({ route, navigation }) {
           >
             {imageUrl ? 'Alterar Imagem' : 'Selecionar Imagem'}
           </Button>
-        </View>
 
+           <Menu
+          visible={vitimaMenuVisible}
+          onDismiss={() => setVitimaMenuVisible(false)}
+          anchor={
+            <Button
+              mode="outlined"
+              onPress={() => setVitimaMenuVisible(true)}
+              style={styles.menuButton}
+            >
+              {vitimas.find(v => v._id === vitimaId)?.nome || 'Selecione a Vítima'}
+            </Button>
+          }
+        >
+          {vitimas.map((v) => (
+            <Menu.Item
+              key={v._id}
+              onPress={() => {
+                setVitimaId(v._id);
+                setVitimaMenuVisible(false);
+              }}
+              title={v.nome}
+            />
+          ))}
+        </Menu>
+
+
+        <View style={styles.section}>
+        <Text style={styles.label}>Localização:*</Text>
+          <LocalMap
+            onLocationUpdate={(locationData) => {
+            setLocalizacao(locationData.endereco);
+            }}
+            mapStyle={styles.map}
+         />
+      </View>
+        </View>
+      <View style={styles.row}>
         <Menu
           visible={tipoMenuVisible}
           onDismiss={() => setTipoMenuVisible(false)}
@@ -273,32 +336,16 @@ export default function EditarEvidenciaScreen({ route, navigation }) {
             />
           ))}
         </Menu>
-
-        <Menu
-          visible={vitimaMenuVisible}
-          onDismiss={() => setVitimaMenuVisible(false)}
-          anchor={
-            <Button
-              mode="outlined"
-              onPress={() => setVitimaMenuVisible(true)}
-              style={styles.menuButton}
-            >
-              {vitimas.find(v => v._id === vitimaId)?.nome || 'Selecione a Vítima'}
-            </Button>
-          }
-        >
-          {vitimas.map((v) => (
-            <Menu.Item
-              key={v._id}
-              onPress={() => {
-                setVitimaId(v._id);
-                setVitimaMenuVisible(false);
-              }}
-              title={v.nome}
-            />
-          ))}
-        </Menu>
-
+      </View>
+        <TextInput
+          label="Conteúdo"
+          value={conteudo}
+          onChangeText={setConteudo}
+          style={styles.input}
+          multiline
+          numberOfLines={3}
+        />
+  
         <Menu
           visible={origemMenuVisible}
           onDismiss={() => setOrigemMenuVisible(false)}
@@ -348,47 +395,6 @@ export default function EditarEvidenciaScreen({ route, navigation }) {
             />
           ))}
         </Menu>
-
-        <Menu
-          visible={statusMenuVisible}
-          onDismiss={() => setStatusMenuVisible(false)}
-          anchor={
-            <Button
-              mode="outlined"
-              onPress={() => setStatusMenuVisible(true)}
-              style={styles.menuButton}
-            >
-              {status || 'Selecione o Status'}
-            </Button>
-          }
-        >
-          {statusEvidencia.map((s) => (
-            <Menu.Item
-              key={s}
-              onPress={() => {
-                setStatus(s);
-                setStatusMenuVisible(false);
-              }}
-              title={s}
-            />
-          ))}
-        </Menu>
-
-        <TextInput
-          label="Localização"
-          value={localizacao}
-          onChangeText={setLocalizacao}
-          style={styles.input}
-        />
-
-        <TextInput
-          label="Conteúdo"
-          value={conteudo}
-          onChangeText={setConteudo}
-          style={styles.input}
-          multiline
-          numberOfLines={3}
-        />
 
         <TextInput
           label="Observações Técnicas"
@@ -453,11 +459,33 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
-    marginBottom: 10,
+    marginBottom: 16,
     backgroundColor: 'white',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    paddingHorizontal: 14,
+    height: 55,
+    fontSize: 16,
+    elevation: 2,
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+   row: {
+    flexDirection: 'row',
+    flexWrap: 'wrap', 
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
   menuButton: {
-    marginBottom: 10,
+    margin: 5,
+    minWidth: 150,
+    flexShrink: 1,
+    backgroundColor: '#fff',
+    borderColor: '#fff',
+    shadowColor: '#000',
   },
   buttonContainer: {
     marginTop: 20,

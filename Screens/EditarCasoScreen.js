@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Image } from 'react-native';
 import { TextInput, Button, Text, HelperText, Menu } from 'react-native-paper';
 import { casesAPI } from '../services/api';
+import Odontograma from './components/Odontograma';
 import * as ImagePicker from 'expo-image-picker';
 
 const statusOptions = ['Aberto', 'Em Análise', 'Concluído', 'Fechado'];
@@ -21,6 +22,7 @@ export default function EditarCasoScreen({ route, navigation }) {
   const [localizacao, setLocalizacao] = useState(caso.localizacao);
   const [status, setStatus] = useState(caso.status);
   const [statusMenuVisible, setStatusMenuVisible] = useState(false);
+  const [odontograma, setOdontograma] = useState(caso.odontograma || {});
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -84,6 +86,7 @@ export default function EditarCasoScreen({ route, navigation }) {
         causaMorte,
         localizacao,
         status,
+        odontograma,
       };
 
       await casesAPI.updateCase(casoId, updatedCase);
@@ -192,6 +195,8 @@ export default function EditarCasoScreen({ route, navigation }) {
           ))}
         </Menu>
 
+        <Odontograma Odontograma={odontograma} setOdontograma={setOdontograma} />
+
         <View style={styles.buttonContainer}>
           <Button
             mode="contained"
@@ -232,8 +237,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
-    marginBottom: 10,
+    marginBottom: 16,
     backgroundColor: 'white',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    paddingHorizontal: 14,
+    height: 55,
+    fontSize: 16,
+    elevation: 2,
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   menuButton: {
     marginBottom: 10,

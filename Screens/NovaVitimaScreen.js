@@ -128,19 +128,21 @@ export default function NovaVitimaScreen({ route, navigation }) {
           {nomeError}
         </HelperText>
 
-        <TextInput
+        <View style={styles.row}>
+          <TextInput
           label="Sexo"
           value={sexo}
           onChangeText={setSexo}
-          style={styles.input}
+          style={styles.inputt}
         />
 
         <TextInput
           label="Cor/Etnia"
           value={corEtnia}
           onChangeText={setCorEtnia}
-          style={styles.input}
+          style={styles.inputt}
         />
+        </View>
 
         <TextInput
           label="Documento"
@@ -189,7 +191,7 @@ export default function NovaVitimaScreen({ route, navigation }) {
           <Button
             mode="outlined"
             onPress={() => navigation.goBack()}
-            style={styles.button}
+            style={styles.btn}
             disabled={loading}
           >
             Cancelar
@@ -214,9 +216,25 @@ const styles = StyleSheet.create({
     color: '#145da0',
     marginBottom: 20,
   },
-  input: {
+   row: {
+    flexDirection: 'row',
+    gap: 5,
     marginBottom: 10,
+  },
+  input: {
+    marginBottom: 5,
     backgroundColor: 'white',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    paddingHorizontal: 14,
+    height: 55,
+    fontSize: 16,
+    elevation: 2,
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   dateButton: {
     marginBottom: 10,
@@ -227,6 +245,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginBottom: 10,
+    backgroundColor: '#154c79',
   },
   errorText: {
     color: '#B00020',
@@ -236,4 +255,20 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     marginBottom: 10,
   },
+  inputt:{
+    width: '50%',
+    marginBottom: 5,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    paddingHorizontal: 14,
+    height: 55,
+    fontSize: 16,
+    elevation: 2,
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  }
 }); 

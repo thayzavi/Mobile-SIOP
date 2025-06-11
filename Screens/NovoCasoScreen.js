@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import {View,Text, Alert, TextInput, StyleSheet, ScrollView, Platform, TouchableOpacity} from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import {View,Text, Alert, TextInput, StyleSheet, ScrollView} from 'react-native';
 import {Button } from 'react-native-paper';
-import Odontograma from './components/Odontograma';
+import { Dropdown } from 'react-native-element-dropdown';
 import DataHora from './components/DataHora';
 import LocalMap from './components/LocalMap';
 import { casesAPI } from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
+const statusOptions = [
+  { label: 'Aberto', value: 'Aberto' },
+  { label: 'Fechado', value: 'Fechado' },
+  { label: 'Em Análise', value: 'Em Análise' },
+];
 
 function CriarCasoScreen({ navigation }) {
   const [titulo, setTitulo] = useState('');
@@ -83,6 +87,21 @@ function CriarCasoScreen({ navigation }) {
     <ScrollView style={styles.container}>
       <Text style={styles.headerTitle}>Criar caso</Text>
 
+
+
+      {/* Status */}
+      <View style={styles.dropdownContainer}>
+      <Dropdown
+        style={styles.dropdown}
+        data={statusOptions}
+        labelField="label"
+        valueField="value"
+        placeholder="Status do caso*"
+        value={status}
+        onChange={item => setStatus(item.value)}
+      />
+    </View>
+
       {/* Título do caso */}
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Título do caso:*</Text>
@@ -105,19 +124,6 @@ function CriarCasoScreen({ navigation }) {
           numberOfLines={4}
           placeholder="Descrição do caso"
         />
-      </View>
-
-      {/* Status */}
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={status}
-          onValueChange={setStatus}
-          style={styles.picker}>
-          <Picker.Item label="Status do caso*" value="" />
-          <Picker.Item label="Aberto" value="Aberto" />
-          <Picker.Item label="Fechado" value="Fechado" />
-          <Picker.Item label="Em Análise" value="Em Análise" />
-        </Picker>
       </View>
 
       {/* Localização */}
@@ -220,17 +226,18 @@ const styles = StyleSheet.create({
   map: {
     height: 200,
     borderRadius: 8,
-    marginTop: 8,
+    marginBottom: '40%',
   },
-  pickerContainer: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    marginBottom: 16,
+  dropdownContainer: {
+    margin: 16,
   },
-  picker: {
+  dropdown: {
     height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 9,
+    backgroundColor: 'white',
   },
   button: {
     marginTop: 20,

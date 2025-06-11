@@ -8,46 +8,36 @@ export default function CriarUsuarioScreen() {
 
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [cro, setCro] = useState('');
   const [senha, setSenha] = useState('');
-  const [dataNascimento, setDataNascimento] = useState('');
-  const [telefone, setTelefone] = useState('');
   const [cargo, setCargo] = useState('Perito');
-  const [menuVisible, setMenuVisible] = useState(false);
+
 
 
   const criarUsuario = async () => {
+  if (!nome || !email || !senha || !cargo) {
+    Alert.alert('Erro', 'Todos os campos são obrigatórios.');
+    return;
+  }
 
-    if (!nome || !email || !cpf || !cro || !senha || !dataNascimento || !telefone) {
-      Alert.alert('Erro', 'Todos os campos são obrigatórios.');
-      return;
+  try {
+    const response = await axios.post('https://backend-siop.onrender.com/api/users/register', {
+    nome,
+    email,
+    senha,
+    role: cargo,
+    });
+
+    if (response.status === 201) {
+      Alert.alert('Sucesso', 'Usuário criado com sucesso!');
+      // Navegação ou limpar campos...
+    } else {
+      Alert.alert('Erro', 'Falha ao criar usuário.');
     }
-
-    try {
-      const response = await axios.post('https://backend-siop.onrender.com/api/users', {
-        nome,
-        email,
-        cpf,
-        cro,
-        senha,
-        dataNascimento,
-        telefone,
-        cargo,
-      });
-
-      if (response.status === 201) {
-        Alert.alert('Sucesso', 'Usuário criado com sucesso!');
-        // Navegação ou outra ação após sucesso
-        // Exemplo: navigation.navigate('ListaUsuarios');
-      } else {
-        Alert.alert('Erro', 'Falha ao criar usuário.');
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Erro', 'Erro ao criar usuário. Verifique os dados e tente novamente.');
-    }
-  };
+  } catch (error) {
+    console.error(error);
+    Alert.alert('Erro', 'Erro ao criar usuário. Verifique os dados e tente novamente.');
+  }
+}; 
 
   return (
     <Provider>
@@ -67,34 +57,14 @@ export default function CriarUsuarioScreen() {
         {/* Campos de entrada */}
         <TextInput placeholder="Nome" style={styles.input} value={nome} onChangeText={setNome} />
         <TextInput placeholder="E-mail" style={styles.input} keyboardType="email-address" value={email} onChangeText={setEmail} />
-        <TextInput placeholder="CPF" style={styles.input} keyboardType="numeric" value={cpf} onChangeText={setCpf} />
 
         <View style={styles.row}>
-          <TextInput placeholder="CRO" style={[styles.input, styles.halfInput]} value={cro} onChangeText={setCro} />
           <TextInput placeholder="Senha" style={[styles.input, styles.halfInput]} secureTextEntry value={senha} onChangeText={setSenha} />
         </View>
 
         <View style={styles.row}>
-          <TextInput placeholder="Data nascimento" style={[styles.input, styles.halfInput]} value={dataNascimento} onChangeText={setDataNascimento} />
-          <TextInput placeholder="Telefone" style={[styles.input, styles.halfInput]} keyboardType="phone-pad" value={telefone} onChangeText={setTelefone} />
+          <TextInput placeholder="Cargo" style={styles.input} value={cargo} onChangeText={setCargo} />
         </View>
-
-        {/* Cargo dropdown */}
-        <Menu
-          visible={menuVisible}
-          onDismiss={() => setMenuVisible(false)}
-          anchor={
-            <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.dropdown}>
-              <Text style={{ color: cargo ? '#000' : '#aaa' }}>
-                {cargo || 'Selecione o cargo'}
-              </Text>
-              <Icon name="arrow-drop-down" size={24} />
-            </TouchableOpacity>
-          }
-        >
-          <Menu.Item onPress={() => setCargo('Perito')} title="Perito" />
-          <Menu.Item onPress={() => setCargo('Administrador')} title="Administrador" />
-        </Menu>
 
         {/* Botão Criar usuário */}
         <Button mode="contained" style={styles.button} onPress={criarUsuario}>
