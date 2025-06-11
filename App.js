@@ -14,6 +14,8 @@ import BancoScreen from './Screens/BancoScreen';
 import EvidenciaScreen from './Screens/EvidenciaScreen';
 import ListEvidenciaScreen from './Screens/ListEvidenciaScreen';
 import LaudoScreen from './Screens/LaudoScreen';
+import VitimaScreen from './Screens/VitimaScreen';
+
 
 // ADM
 import GerenciaUserScreen from './Screens/ScreensAdm/GerenciaUserScreen';
@@ -39,6 +41,7 @@ function CasosStack() {
       <Stack.Screen name="Evidencia" component={EvidenciaScreen} />
       <Stack.Screen name="Lista de evidência" component={ListEvidenciaScreen} />
       <Stack.Screen name="Gera laudo" component={LaudoScreen} />
+      <Stack.Screen name="Lista de vitima" component={VitimaScreen}/>
     </Stack.Navigator>
   );
 }
