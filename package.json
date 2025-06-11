@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-community/cli": "latest",
     "@react-native-community/datetimepicker": "8.3.0",
     "@react-native-picker/picker": "^2.11.0",
     "@react-navigation/bottom-tabs": "^7.3.14",
@@ -35,6 +37,7 @@
     "react-native-toast-message": "^2.3.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0",
+    "react-native-webview": "13.13.5",
     "yarn": "^1.22.22"
   },
   "devDependencies": {

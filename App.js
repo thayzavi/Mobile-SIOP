@@ -14,12 +14,17 @@ import BancoScreen from './Screens/BancoScreen';
 import EvidenciaScreen from './Screens/EvidenciaScreen';
 import ListEvidenciaScreen from './Screens/ListEvidenciaScreen';
 import LaudoScreen from './Screens/LaudoScreen';
+import NovaVitimaScreen from './Screens/NovaVitimaScreen';
+import NovaEvidenciaScreen from './Screens/NovaEvidenciaScreen';
+import EditarCasoScreen from './Screens/EditarCasoScreen';
+import EditarEvidenciaScreen from './Screens/EditarEvidenciaScreen';
 
 // ADM
 import GerenciaUserScreen from './Screens/ScreensAdm/GerenciaUserScreen';
 import CriarUserScreen from './Screens/ScreensAdm/CriarUserScreen';
 import DadosUserScreen from './Screens/ScreensAdm/DadosUserScreen';
 import DashboardScreen from './Screens/ScreensAdm/DashboardScreen';
+import EditarVitimaScreen from './Screens/EditarVitimaScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -36,6 +41,11 @@ function CasosStack() {
       <Stack.Screen name="Casos em andamento" component={CasosScreen} />
       <Stack.Screen name="Novo caso" component={NovoCasoScreen} />
       <Stack.Screen name="Detalhes caso" component={DetalhesCasoScreen} />
+      <Stack.Screen name="Nova Vítima" component={NovaVitimaScreen} />
+      <Stack.Screen name="Nova Evidência" component={NovaEvidenciaScreen} />
+      <Stack.Screen name="Editar Caso" component={EditarCasoScreen} />
+      <Stack.Screen name="Editar Vítima" component={EditarVitimaScreen} />
+      <Stack.Screen name="Editar Evidência" component={EditarEvidenciaScreen} options={{ title: 'Editar Evidência' }} />
       <Stack.Screen name="Evidencia" component={EvidenciaScreen} />
       <Stack.Screen name="Lista de evidência" component={ListEvidenciaScreen} />
       <Stack.Screen name="Gera laudo" component={LaudoScreen} />
@@ -122,14 +132,14 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen 
-            name="PeritoTabs" 
-            component={PeritoTabs} 
+          <Stack.Screen
+            name="PeritoTabs"
+            component={PeritoTabs}
             options={{ gestureEnabled: false }}
           />
-          <Stack.Screen 
-            name="AdminTabs" 
-            component={AdminTabs} 
+          <Stack.Screen
+            name="AdminTabs"
+            component={AdminTabs}
             options={{ gestureEnabled: false }}
           />
         </Stack.Navigator>

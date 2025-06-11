@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Alert, View, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
+import { Alert, View, StyleSheet, FlatList, Image, TouchableOpacity, RefreshControl } from 'react-native';
 import { Text, Button, Card, Chip } from 'react-native-paper';
+import { casesAPI } from '../services/api';
 
 const corStatus = {
   'Fechado': '#C76565',
@@ -12,69 +13,83 @@ const corStatus = {
 export default function CasosScreen({ navigation }) {
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchCases = async () => {
+    try {
+      const data = await casesAPI.getCases();
+      setCases(data);
+    } catch (error) {
+      console.error('Erro ao buscar casos:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os casos');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCases = async () => {
-      try {
-        const response = await fetch('https://backend-siop.onrender.com/api/cases');
-        const data = await response.json();
-        console.log('Casos recebidos:', data);
-        setCases(data);
-      } catch (error) {
-        console.error('Erro ao buscar casos:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCases();
   }, []);
 
-   const handleDelete = async (id) => {
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchCases();
+  };
+
+  const handleDelete = async (id) => {
     try {
-      await fetch(`https://backend-siop.onrender.com/api/cases/${id}`, {
-        method: 'DELETE',
-      });
+      await casesAPI.deleteCase(id);
       setCases((prevCases) => prevCases.filter((caso) => caso._id !== id));
+      Alert.alert('Sucesso', 'Caso excluído com sucesso');
     } catch (error) {
       console.error('Erro ao deletar caso:', error);
+      Alert.alert('Erro', 'Não foi possível excluir o caso');
     }
   };
 
   const confirmDelete = (id) => {
     Alert.alert(
       "Confirmar exclusão",
-      "Tem certeza que deseja deletar este caso?",
+      "Tem certeza que deseja excluir este caso?",
       [
         { text: "Cancelar", style: "cancel" },
-        { text: "Deletar", onPress: () => handleDelete(id), style: "destructive" }
+        { text: "Excluir", onPress: () => handleDelete(id), style: "destructive" }
       ]
     );
   };
 
-
   const renderItem = ({ item }) => (
     <Card style={styles.card}>
       <View style={styles.conteudo}>
-        <Image source={{ uri: item.caseImageUrl }} style={styles.image} />
+        <Image 
+          source={{ uri: item.caseImageUrl || 'https://via.placeholder.com/60' }} 
+          style={styles.image} 
+        />
         <View style={{ flex: 1 }}>
           <Text style={styles.nome}>{item.titulo}</Text>
-          <Text style={styles.data}>{new Date(item.dataAbertura).toLocaleDateString()}</Text>
-          <Text style={styles.descricao}>{item.descricao}</Text>
+          <Text style={styles.data}>
+            {new Date(item.dataAbertura).toLocaleDateString('pt-BR')}
+          </Text>
+          <Text style={styles.descricao} numberOfLines={2}>
+            {item.descricao}
+          </Text>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Detalhes caso', { casoId: item._id })}
-            style={styles.detalhes}
-          >
-            <Text style={{ color: '#145da0' }}>Ver detalhes</Text>
-          </TouchableOpacity>
+          <View style={styles.actions}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Detalhes caso', { casoId: item._id })}
+              style={styles.detalhes}
+            >
+              <Text style={styles.btnDetalhes}>Ver detalhes</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => confirmDelete(item._id)}
-            style={styles.deletar}
-          >
-            <Text style={styles.btnDelet}>Deletar</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => confirmDelete(item._id)}
+              style={styles.deletar}
+            >
+              <Text style={styles.btnDeletar}>Excluir</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         
         <Chip
@@ -98,7 +113,7 @@ export default function CasosScreen({ navigation }) {
       </Button>
 
       {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={styles.loadingContainer}>
           <Text>Carregando...</Text>
         </View>
       ) : (
@@ -107,6 +122,18 @@ export default function CasosScreen({ navigation }) {
           keyExtractor={(item) => item._id}
           renderItem={renderItem}
           contentContainerStyle={styles.lista}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#145da0']}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Nenhum caso encontrado</Text>
+            </View>
+          }
         />
       )}
     </View>
@@ -118,6 +145,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F2F4F8',
     paddingHorizontal: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  emptyText: {
+    color: '#666',
+    fontSize: 16,
   },
   add: {
     alignSelf: 'flex-end',
@@ -133,6 +175,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: 'hidden',
     backgroundColor: '#fff',
+    elevation: 2,
   },
   conteudo: {
     flexDirection: 'row',
@@ -144,7 +187,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 5,
     marginRight: 12,
-    backgroundColor: '#ccc',
+    backgroundColor: '#eee',
   },
   nome: {
     fontSize: 16,
@@ -160,7 +203,27 @@ const styles = StyleSheet.create({
   },
   descricao: {
     fontSize: 14,
-    color: '#000',
+    color: '#666',
+    marginBottom: 10,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  detalhes: {
+    flex: 1,
+  },
+  deletar: {
+    marginLeft: 10,
+  },
+  btnDetalhes: {
+    color: '#145da0',
+    fontWeight: '500',
+  },
+  btnDeletar: {
+    color: '#C0392B',
+    fontWeight: '500',
   },
   chip: {
     alignSelf: 'flex-start',
@@ -168,14 +231,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   textChip: {
-    color: '#fff'
-  },
-  detalhes: {
-    marginTop: 8,
-  },
-   btnDelet: {
-    marginTop: 5,
-    color: '#C0392B',
-    marginInlineEnd:5,
+    color: '#fff',
+    fontSize: 12,
   },
 });

@@ -5,252 +5,178 @@ import {Button } from 'react-native-paper';
 import Odontograma from './components/Odontograma';
 import DataHora from './components/DataHora';
 import LocalMap from './components/LocalMap';
+import { casesAPI } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 
 function CriarCasoScreen({ navigation }) {
-  const [NIC, setNIC] = useState('');
-  const [nomeCaso, setNomeCaso] = useState('');
-  const [responsavel, setResponsavel] = useState('');
-  const [informacoes, setInformacoes] = useState('');
+  const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
-  const [endereco, setEndereco] = useState('');
-  const [sexoVitima, setSexoVitima] = useState('');
+  const [status, setStatus] = useState('');
+  const [localizacao, setLocalizacao] = useState('');
   const [causaMorte, setCausaMorte] = useState('');
-  const [corPele, setCorPele] = useState('');
-  const [statusCaso , setstatusCaso] = useState('');
-  const [identificacao, setIdentificacao] = useState('');
-  const [hora, setHora] = useState(new Date());
-  const [data, setData] = useState(new Date());
+  const [instituicao, setInstituicao] = useState('');
+  const [dataAbertura, setDataAbertura] = useState(new Date());
+  const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState(null);
 
-  const [OdontogramaData, setOdontogramaData] = useState({});
+  useEffect(() => {
+    // Carregar o ID do usuário logado
+    const loadUserId = async () => {
+      try {
+        const storedUserId = await AsyncStorage.getItem('userId');
+        if (storedUserId) {
+          setUserId(storedUserId);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar ID do usuário:', error);
+      }
+    };
 
+    loadUserId();
+  }, []);
 
-  
+  const validateFields = () => {
+    if (!titulo || !descricao || !status || !localizacao || !causaMorte || !instituicao) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios');
+      return false;
+    }
+    if (!userId) {
+      Alert.alert('Erro', 'Usuário não autenticado. Por favor, faça login novamente.');
+      return false;
+    }
+    return true;
+  };
 
   const criarCaso = async () => {
-  const novoCaso = {
-    NIC,
-    nomeCaso,
-    responsavel,
-    informacoes,
-    descricao,
-    endereco,
-    data: data.toISOString(),
-    hora: hora.toString().slice(0, 5),
-    sexoVitima,
-    causaMorte,
-    corPele,
-    statusCaso,
-    identificacao,
-    odontograma: OdontogramaData,
-  };
-  
-  try {
-    const response = await fetch('https://backend-siop.onrender.com/api/cases', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(novoCaso),
-    });
+    if (!validateFields()) return;
 
-    if (!response.ok) {
-      throw new Error('Erro ao criar caso');
+    setLoading(true);
+    try {
+      const caseData = {
+        titulo,
+        descricao,
+        status,
+        localizacao,
+        responsavel: userId,
+        causaMorte,
+        instituicao,
+        dataAbertura: dataAbertura.toISOString(),
+        evidencias: [],
+        relatorios: []
+      };
+
+      console.log('Dados do caso a serem enviados:', caseData);
+      const newCase = await casesAPI.createCase(caseData);
+      Alert.alert('Sucesso', 'Caso criado com sucesso!');
+      navigation.goBack();
+    } catch (error) {
+      console.error('Erro detalhado:', error);
+      Alert.alert('Erro', error.message || 'Erro ao criar caso');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const data = await response.json();
-    console.log('Caso criado com sucesso:', data);
-
-  } catch (error) {
-    console.error('Erro ao criar caso:', error);
-    alert('Erro ao criar caso. Tente novamente.');
-  }
-};
   return(
     <ScrollView style={styles.container}>
       <Text style={styles.headerTitle}>Criar caso</Text>
 
-
-    {/* campo identificação */}
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={identificacao}
-          onValueChange={setIdentificacao}
-          style={styles.picker}>
-
-          <Picker.Item label="Identificação" value="" />
-          <Picker.Item label="Identificado" value="identificado" />
-          <Picker.Item label="Não identificado" value="nao_identificado" />
-        </Picker>
-      </View>
-      {/* NIC da vitima */}
-
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}>NIC:</Text>
-      <TextInput
-      style={styles.input}
-      value={NIC}
-      onChangeText={setNIC}
-      placeholder="NIC da vitíma"
-      />
-    </View>
-    
-    {/* campo nome do caso */}
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}>Nome do caso:</Text>
-      <TextInput
-      style={styles.input}
-      value={nomeCaso}
-      onChangeText={setNomeCaso}
-      placeholder="Nome do caso"
-      />
-    </View>
-
-    {/* responsavel */}
-    <View style={styles.inputGroup}>
-      
-      <Text style={styles.label}>Reponsável:</Text>
-      <TextInput
-      style={styles.input}
-      value={responsavel}
-      onChangeText={setResponsavel}
-      placeholder="Resposável pelo caso"
-      />
-    </View>
-
-    {/* local */}
-  <View style={styles.section}>
-  <LocalMap
-    onLocationUpdate={(locationData) => {
-      setEndereco(locationData.endereco);
-    }}
-    mapStyle={styles.map}
-  />
-</View>
-
-    {/* informações */}
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}>Informações:</Text>
-      <TextInput
-      style={[styles.input, styles.textArea]}
-      value={informacoes}
-      onChangeText={setInformacoes}
-      multiline
-      numberOfLines={4}
-      placeholder="Informações do caso"
-      />
-    </View>
-
-    {/* descrição */}
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}>Descrição:</Text>
-      <TextInput
-      style={styles.input}
-      value={descricao}
-      onChangeText={setDescricao}
-      numberOfLines={4}
-      placeholder="Descrição do caso"
-      />
-    </View>
-
-    {/* sexo da vitima */}
-      <View style={styles.pickerContainer}>
-        <Picker
-        selectedValue={sexoVitima}
-        onValueChange={(itemValue) => setSexoVitima(itemValue)}
-        mode="dropdown"
-        style={styles.picker}>
-          <Picker.Item label="Sexo" value=""/>
-          <Picker.Item label="Feminino" value="Feminino"/>
-          <Picker.Item label="Masculino" value="Masculino"/>
-          <Picker.Item label="Outro" value="Outro"/>
-        </Picker>
+      {/* Título do caso */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Título do caso:*</Text>
+        <TextInput
+          style={styles.input}
+          value={titulo}
+          onChangeText={setTitulo}
+          placeholder="Título do caso"
+        />
       </View>
 
-      <View style={styles.pickerContainer}>
-          <Picker
-          selectedValue={corPele}
-          onValueChange={(itemValue) => setCorPele(itemValue)}
-          mode="dropdown"
-          style={styles.picker}>
-            <Picker.Item label="cor de pele" value=""/>
-            <Picker.Item label="Branca" value="Branca"/>
-            <Picker.Item label="Parda" value="Parda"/>
-            <Picker.Item label="Preta" value="Preta"/>
-            <Picker.Item label="Amarelo" value="Amarelo"/>
-            <Picker.Item label="Indígena" value="Indígena"/>
-            <Picker.Item label="Não identificada" value="Não identificada"/>
-          </Picker>
-        </View>
-    
-    {/* div data e hora */}
-      <View style={styles.row}>
-        <View style={[styles.inputGroup, styles.width]}>
-          <DataHora
-            mode="date"
-            onDateChange={(newDate) => setData(newDate)}
-            initialDate={data}
-            containerStyle={styles.pickerContainer}
-            buttonStyle={styles.dateTimeButton}
-            textStyle={styles.dateTimeText}
-          />
-        </View>
-  
-        <View style={[styles.inputGroup, styles.width]}>
-            <DataHora
-              mode="time"
-              onTimeChange={(newTime) => setHora(newTime)}
-              initialDate={hora}
-              containerStyle={styles.pickerContainer}
-              buttonStyle={styles.dateTimeButton}
-              textStyle={styles.dateTimeText}
-            />
-          </View>
+      {/* Descrição */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Descrição:*</Text>
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          value={descricao}
+          onChangeText={setDescricao}
+          multiline
+          numberOfLines={4}
+          placeholder="Descrição do caso"
+        />
       </View>
-            
+
+      {/* Status */}
       <View style={styles.pickerContainer}>
         <Picker
-          selectedValue={statusCaso}
-          onValueChange={setstatusCaso}
-          mode="dropdown"
+          selectedValue={status}
+          onValueChange={setStatus}
           style={styles.picker}>
-          
-          <Picker.Item label="Status do caso" value="" />
+          <Picker.Item label="Status do caso*" value="" />
           <Picker.Item label="Aberto" value="Aberto" />
           <Picker.Item label="Fechado" value="Fechado" />
-          <Picker.Item label="Em andamento" value="Em_andamento" />
-          <Picker.Item label="Concluído" value="Concluído" />
-
+          <Picker.Item label="Em Análise" value="Em Análise" />
         </Picker>
       </View>
 
+      {/* Localização */}
+      <View style={styles.section}>
+        <Text style={styles.label}>Localização:*</Text>
+        <LocalMap
+          onLocationUpdate={(locationData) => {
+            setLocalizacao(locationData.endereco);
+          }}
+          mapStyle={styles.map}
+        />
+      </View>
 
-      {/* causa da morte */}
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}> Causa da morte:</Text>
-      <TextInput
-      style={styles.input}
-      value={causaMorte}
-      onChangeText={setCausaMorte}
-      placeholder="Causa da morte"
-      numberOfLines={4}
-      />
-    </View>
+      {/* Instituição */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Instituição:*</Text>
+        <TextInput
+          style={styles.input}
+          value={instituicao}
+          onChangeText={setInstituicao}
+          placeholder="Instituição responsável"
+        />
+      </View>
 
+      {/* Causa da morte */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Causa da morte:*</Text>
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          value={causaMorte}
+          onChangeText={setCausaMorte}
+          multiline
+          numberOfLines={4}
+          placeholder="Causa da morte"
+        />
+      </View>
 
-    {/* componente odontograma */}
-    <View style={styles.section}>
-      <Odontograma odontograma={OdontogramaData} setOdontograma={setOdontogramaData} />
-    </View>
+      {/* Data de abertura */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Data de abertura:</Text>
+        <DataHora
+          mode="date"
+          onDateChange={(newDate) => setDataAbertura(newDate)}
+          initialDate={dataAbertura}
+          containerStyle={styles.pickerContainer}
+          buttonStyle={styles.dateTimeButton}
+          textStyle={styles.dateTimeText}
+        />
+      </View>
 
-    {/* btn */}
-    <Button
+      {/* Botão de criar */}
+      <Button
         mode="contained"
         onPress={criarCaso}
-        style={styles.add}
+        loading={loading}
+        disabled={loading}
+        style={styles.button}
       >
-        + Criar novo caso
+        {loading ? 'Criando...' : 'Criar caso'}
       </Button>
     
     </ScrollView>
@@ -260,72 +186,66 @@ function CriarCasoScreen({ navigation }) {
 const styles = StyleSheet.create({
   container:{
     flex: 1,
-    backgroundColor: '#f7f7f7',
-    padding: 20,
+    backgroundColor: '#F2F4F8',
+    padding: 16,
   },
   headerTitle:{
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#00000',
+    color: '#145da0',
     marginBottom: 20,
   },
   inputGroup: {
-    marginBottom: 15,
+    marginBottom: 16,
   },
   label: {
     fontSize: 16,
-    color: '#00000',
-    marginBottom: 5,
+    color: '#145da0',
+    marginBottom: 8,
   },
   input:{
-    backgroundColor: '#fff',
-    color: '#00000',
+    backgroundColor: 'white',
     borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    fontSize: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
-    elevation: 4,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   textArea:{
     height: 100,
     textAlignVertical:'top',
   },
   section:{
-    marginBottom: 15,
+    marginBottom: 16,
   },
-  sectionTitle:{
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#00000',
-    marginBottom: 10,
-  },
-  row:{
-    flexDirection:'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  width:{
-    width:'40%',
+  map: {
+    height: 200,
+    borderRadius: 8,
+    marginTop: 8,
   },
   pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
+    backgroundColor: 'white',
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
     marginBottom: 16,
   },
   picker: {
-    color: '#000', // cor do texto visível
-    height: 60,
-    width: '100%',
+    height: 50,
   },
-  add: {
-    alignSelf: 'flex-end',
-    marginVertical: 15,
+  button: {
+    marginTop: 20,
+    marginBottom: 40,
     backgroundColor: '#145da0',
-    marginEnd: 15,
+  },
+  dateTimeButton: {
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  dateTimeText: {
+    color: '#145da0',
   },
 });
 

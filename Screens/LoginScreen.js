@@ -1,45 +1,43 @@
 import React from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Text, TextInput, Button} from 'react-native-paper';
+import { authAPI } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen({navigation}) {
     const [email, setEmail] = React.useState('');
     const [senha, setSenha] = React.useState('');
     const [isLoading, setIsLoading] = React.useState(false);
 
-    const handleChange = async() => {
-        if(! email || !senha) {
-            Alert.alert('Preencha todos os campo');
+    const handleLogin = async () => {
+        if(!email || !senha) {
+            Alert.alert('Erro', 'Preencha todos os campos');
             return;
         }
 
         setIsLoading(true);
 
-        try{
-            //simulação da chamada da api - teste 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+            const { token, role, id } = await authAPI.login(email, senha);
+            
+            // Store the authentication data
+            await AsyncStorage.setItem('userToken', token);
+            await AsyncStorage.setItem('userRole', role);
+            await AsyncStorage.setItem('userId', id);
 
-        const resposta = {
-            success: true,
-            userType: 'admin' //resposta do back, se o user vai ser adm, perito ou assistente.
-           
-        };
-
-        if (resposta.success) {
-            if (resposta.userType === 'admin'){
+            // Navigate based on role
+            if (role === 'admin') {
                 navigation.replace('AdminTabs');
             } else {
                 navigation.replace('PeritoTabs');
             }
-         } else {
-            Alert.alert('Erro', 'Credenciais inválidas');
-            }  
         } catch (error) {
-            Alert.alert('Error, Falha na conexão');
-        } finally{
+            Alert.alert('Erro', error.message || 'Falha na conexão');
+        } finally {
             setIsLoading(false);
         }
     };
+
     return(
         <View style={styles.container}>
             <View style={styles.header}>
@@ -53,32 +51,36 @@ export default function LoginScreen({navigation}) {
                 </Text>
                 <Text style={styles.label}>E-mail</Text>
                 <TextInput
-                mode="outlined"
-                placeholder="insira seu e-mail"
-                value={email}
-                onChangeText={setEmail}
-                style={styles.input}></TextInput>
+                    mode="outlined"
+                    placeholder="insira seu e-mail"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    style={styles.input}
+                />
 
                 <Text style={styles.label}>Senha</Text>
                 <TextInput
-                mode="outlined"
-                placeholder="insira sua senha"
-                value={senha}
-                onChangeText={setSenha}
-                style={styles.input}></TextInput>
+                    mode="outlined"
+                    placeholder="insira sua senha"
+                    value={senha}
+                    onChangeText={setSenha}
+                    secureTextEntry
+                    style={styles.input}
+                />
 
                 <Button 
                     mode="contained" 
-                    onPress={handleChange} 
+                    onPress={handleLogin} 
                     loading={isLoading}
                     disabled={isLoading}
                     style={styles.button}>
                     {isLoading ? 'Carregando..' : 'Login'}
-                    
                 </Button>
             </View>
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
