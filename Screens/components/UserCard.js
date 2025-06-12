@@ -6,10 +6,9 @@ const UserCard = ({ id, name, cro, role, onDelete, onDetails }) => {
   
   return (
     <View style={styles.card}>
-      <Image source={require('../../assets/img.jpeg')} style={styles.avatar} />
+      <Image source={require('../../assets/img.jpg')} style={styles.avatar} />
       <View style={styles.info}>
         <Text style={styles.name}>Nome: {name}</Text>
-        <Text style={styles.cro}>CRO-SP: {cro}</Text>
         <TouchableOpacity style={styles.badge}>
           <Ionicons name="person" size={16} color="#fff" />
           <Text style={styles.badgeText}>{role}</Text>

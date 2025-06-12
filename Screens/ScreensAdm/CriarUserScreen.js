@@ -5,43 +5,54 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 
 export default function CriarUsuarioScreen() {
-
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [cargo, setCargo] = useState('Perito');
 
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
 
+  const abrirMenu = () => setMenuVisible(true);
+  const fecharMenu = () => setMenuVisible(false);
 
   const criarUsuario = async () => {
-  if (!nome || !email || !senha || !cargo) {
-    Alert.alert('Erro', 'Todos os campos são obrigatórios.');
-    return;
-  }
-
-  try {
-    const response = await axios.post('https://backend-siop.onrender.com/api/users/register', {
-    nome,
-    email,
-    senha,
-    role: cargo,
-    });
-
-    if (response.status === 201) {
-      Alert.alert('Sucesso', 'Usuário criado com sucesso!');
-      // Navegação ou limpar campos...
-    } else {
-      Alert.alert('Erro', 'Falha ao criar usuário.');
+    if (!nome || !email || !senha || !cargo) {
+      Alert.alert('Erro', 'Todos os campos são obrigatórios.');
+      return;
     }
-  } catch (error) {
-    console.error(error);
-    Alert.alert('Erro', 'Erro ao criar usuário. Verifique os dados e tente novamente.');
-  }
-}; 
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post('https://backend-siop.onrender.com/api/users/register', {
+        nome,
+        email,
+        senha,
+        role: cargo,
+      });
+
+      if (response.status === 201) {
+        Alert.alert('Sucesso', 'Usuário criado com sucesso!');
+        // Limpar campos
+        setNome('');
+        setEmail('');
+        setSenha('');
+        setCargo('Perito');
+      } else {
+        Alert.alert('Erro', 'Falha ao criar usuário.');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Erro', 'Erro ao criar usuário. Verifique os dados e tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Provider>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Criar usuário</Text>
 
         {/* Ícone de perfil */}
@@ -55,19 +66,52 @@ export default function CriarUsuarioScreen() {
         </View>
 
         {/* Campos de entrada */}
-        <TextInput placeholder="Nome" style={styles.input} value={nome} onChangeText={setNome} />
-        <TextInput placeholder="E-mail" style={styles.input} keyboardType="email-address" value={email} onChangeText={setEmail} />
+        <TextInput
+          placeholder="Nome"
+          style={styles.input}
+          value={nome}
+          onChangeText={setNome}
+          autoCapitalize="words"
+        />
+        <TextInput
+          placeholder="E-mail"
+          style={styles.input}
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+        />
+        <TextInput
+          placeholder="Senha"
+          style={styles.input}
+          secureTextEntry
+          value={senha}
+          onChangeText={setSenha}
+        />
 
-        <View style={styles.row}>
-          <TextInput placeholder="Senha" style={[styles.input, styles.halfInput]} secureTextEntry value={senha} onChangeText={setSenha} />
-        </View>
-
-        <View style={styles.row}>
-          <TextInput placeholder="Cargo" style={styles.input} value={cargo} onChangeText={setCargo} />
-        </View>
+        {/* Dropdown de cargo */}
+        <Menu
+          visible={menuVisible}
+          onDismiss={fecharMenu}
+          anchor={
+            <TouchableOpacity onPress={abrirMenu} style={styles.dropdown}>
+              <Text>{cargo}</Text>
+              <Icon name="arrow-drop-down" size={24} color="#555" />
+            </TouchableOpacity>
+          }
+        ><Menu.Item onPress={() => { setCargo('perito'); fecharMenu(); }} title="Perito" />
+        <Menu.Item onPress={() => { setCargo('admin'); fecharMenu(); }} title="Administrador" />
+        <Menu.Item onPress={() => { setCargo('assistente'); fecharMenu(); }} title="Assistente" />
+        </Menu>
 
         {/* Botão Criar usuário */}
-        <Button mode="contained" style={styles.button} onPress={criarUsuario}>
+        <Button
+          mode="contained"
+          style={styles.button}
+          onPress={criarUsuario}
+          loading={loading}
+          disabled={loading}
+        >
           Criar usuário
         </Button>
       </ScrollView>
@@ -86,6 +130,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#154c79',
     marginBottom: 20,
+    textAlign: 'center',
   },
   avatarContainer: {
     alignItems: 'center',
@@ -115,18 +160,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     elevation: 1,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  halfInput: {
-    width: '48%',
-  },
   dropdown: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: '#fff',
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
     borderRadius: 5,
     marginVertical: 8,
     elevation: 1,

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Image } from 'react-native';
 import { TextInput, Button, Text, HelperText, Menu } from 'react-native-paper';
 import { casesAPI } from '../services/api';
-import Odontograma from './components/Odontograma';
 import * as ImagePicker from 'expo-image-picker';
 
 const statusOptions = ['Aberto', 'Em Análise', 'Concluído', 'Fechado'];
@@ -22,7 +21,6 @@ export default function EditarCasoScreen({ route, navigation }) {
   const [localizacao, setLocalizacao] = useState(caso.localizacao);
   const [status, setStatus] = useState(caso.status);
   const [statusMenuVisible, setStatusMenuVisible] = useState(false);
-  const [odontograma, setOdontograma] = useState(caso.odontograma || {});
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -194,8 +192,6 @@ export default function EditarCasoScreen({ route, navigation }) {
             />
           ))}
         </Menu>
-
-        <Odontograma Odontograma={odontograma} setOdontograma={setOdontograma} />
 
         <View style={styles.buttonContainer}>
           <Button

@@ -20,6 +20,7 @@ export default function EditarVitimaScreen({ route, navigation }) {
   const [corEtnia, setCorEtnia] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
   const [endereco, setEndereco] = useState('');
+  const [odontograma, setOdontograma] = useState(''); // Adicionado
 
   // Menus
   const [sexoMenuVisible, setSexoMenuVisible] = useState(false);
@@ -35,6 +36,7 @@ export default function EditarVitimaScreen({ route, navigation }) {
         setCorEtnia(vitimaData.corEtnia || '');
         setDataNascimento(vitimaData.dataNascimento ? new Date(vitimaData.dataNascimento).toISOString().split('T')[0] : '');
         setEndereco(vitimaData.endereco || '');
+        setOdontograma(vitimaData.odontograma || ''); // Adicionado
       } catch (error) {
         console.error('Erro ao carregar vítima:', error);
         setError('Erro ao carregar dados da vítima');
@@ -73,6 +75,7 @@ export default function EditarVitimaScreen({ route, navigation }) {
         corEtnia,
         dataNascimento,
         endereco,
+        odontograma
       };
 
       await casesAPI.updateVictim(vitimaId, updatedVictim);
@@ -125,32 +128,58 @@ export default function EditarVitimaScreen({ route, navigation }) {
           onChangeText={setNome}
           style={styles.input}
         />
-      <View style={styles.row}>
-        <Menu
-          visible={sexoMenuVisible}
-          onDismiss={() => setSexoMenuVisible(false)}
-          anchor={
-            <Button
-              mode="outlined"
-              onPress={() => setSexoMenuVisible(true)}
-              style={styles.menuButton}
-            >
-              {sexo || 'Selecione o Sexo'}
-            </Button>
-          }
-        >
-          {sexoOptions.map((s) => (
-            <Menu.Item
-              key={s}
-              onPress={() => {
-                setSexo(s);
-                setSexoMenuVisible(false);
-              }}
-              title={s}
-            />
-          ))}
-        </Menu>
-      </View>
+
+        <View style={styles.row}>
+          <Menu
+            visible={sexoMenuVisible}
+            onDismiss={() => setSexoMenuVisible(false)}
+            anchor={
+              <Button
+                mode="outlined"
+                onPress={() => setSexoMenuVisible(true)}
+                style={styles.menuButton}
+              >
+                {sexo || 'Selecione o Sexo'}
+              </Button>
+            }
+          >
+            {sexoOptions.map((s) => (
+              <Menu.Item
+                key={s}
+                onPress={() => {
+                  setSexo(s);
+                  setSexoMenuVisible(false);
+                }}
+                title={s}
+              />
+            ))}
+          </Menu>
+
+          <Menu
+            visible={corEtniaMenuVisible}
+            onDismiss={() => setCorEtniaMenuVisible(false)}
+            anchor={
+              <Button
+                mode="outlined"
+                onPress={() => setCorEtniaMenuVisible(true)}
+                style={styles.menuButton}
+              >
+                {corEtnia || 'Selecione Cor/Etnia'}
+              </Button>
+            }
+          >
+            {corEtniaOptions.map((cor) => (
+              <Menu.Item
+                key={cor}
+                onPress={() => {
+                  setCorEtnia(cor);
+                  setCorEtniaMenuVisible(false);
+                }}
+                title={cor}
+              />
+            ))}
+          </Menu>
+        </View>
 
         <TextInput
           label="Data de Nascimento"
@@ -232,20 +261,26 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
   menuButton: {
+    flex: 1,
     height: 50,
     borderColor: '#E0E0E0',
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 16,
     backgroundColor: 'white',
-    marginBottom: 16,
     justifyContent: 'center',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    marginHorizontal: 4,
   },
   buttonContainer: {
     marginTop: 24,
@@ -279,7 +314,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
   },
-  // Adicionei alguns estilos extras que podem ser úteis
   buttonText: {
     color: 'white',
     fontSize: 16,
@@ -296,4 +330,4 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     fontWeight: '500',
   },
-}); 
+});

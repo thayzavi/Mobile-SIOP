@@ -4,8 +4,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { Button } from 'react-native-paper';
 import { Camera } from 'expo-camera';
 import { Picker } from '@react-native-picker/picker';
-import DataHora from './components/DataHora';
-import LocalMap from './components/LocalMap';
+import DataHora from '../components/DataHora';
+import LocalMap from '../components/LocalMap';
 
 
 export default function EvidenciaScreen() {

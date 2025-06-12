@@ -52,8 +52,7 @@ const GerenciamentoUser = () => {
           renderItem={({item}) => (
           <UserCard
             id={item._id}
-            name={item.name}
-            cro={item.cro}
+            name={item.nome}
             role={item.role}
             onDelete={() => handleDelete(item._id)}
             onDetails={() => navigation.navigate('Dados usuario', { usersId: item._id })}

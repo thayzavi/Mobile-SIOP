@@ -211,6 +211,14 @@ export default function DetalhesCasoScreen({ route, navigation }) {
       navigation.navigate('Editar Evidência', { evidenciaId: item._id, casoId });
     }
   };
+  const generateReport = async (caseId) => {
+  try {
+    const response = await casesAPI.generateReport(caseId);
+    return response.relatorio; // ou o caminho correto para o relatório na resposta
+  } catch (error) {
+    throw error;
+  }
+};
 
   const gerarMapaHTML = (local) => {
     const encodedLocation = encodeURIComponent(local);
@@ -412,7 +420,7 @@ export default function DetalhesCasoScreen({ route, navigation }) {
           )}
         </Card>
       )}
-
+  
       {/* Botões de ação */}
       <View style={styles.actions}>
         <Button
@@ -423,7 +431,6 @@ export default function DetalhesCasoScreen({ route, navigation }) {
         >
           Editar Caso
         </Button>
-
         <Button
           mode="contained"
           onPress={() => navigation.navigate('Nova Vítima', { casoId })}

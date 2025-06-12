@@ -10,10 +10,9 @@ import CasosScreen from './Screens/CasosScreen';
 import DetalhesCasoScreen from './Screens/DetalhesCasoScreen';
 import NovoCasoScreen from './Screens/NovoCasoScreen';
 import ConfiguracaoScreen from './Screens/ConfiguracaoScreen';
-import BancoScreen from './Screens/BancoScreen';
-import EvidenciaScreen from './Screens/EvidenciaScreen';
-import ListEvidenciaScreen from './Screens/ListEvidenciaScreen';
-import LaudoScreen from './Screens/LaudoScreen';
+import EvidenciaScreen from './Screens/PastasReservas/EvidenciaScreen';
+import ListEvidenciaScreen from './Screens/PastasReservas/ListEvidenciaScreen';
+import LaudoScreen from './Screens/PastasReservas/LaudoScreen';
 import NovaVitimaScreen from './Screens/NovaVitimaScreen';
 import NovaEvidenciaScreen from './Screens/NovaEvidenciaScreen';
 import EditarCasoScreen from './Screens/EditarCasoScreen';
@@ -93,7 +92,6 @@ function PeritoTabs() {
       })}
     >
       <Tab.Screen name="Casos" component={CasosStack} />
-      <Tab.Screen name="Banco" component={BancoScreen} />
       <Tab.Screen name="Configurações" component={ConfiguracaoScreen} />
     </Tab.Navigator>
   );

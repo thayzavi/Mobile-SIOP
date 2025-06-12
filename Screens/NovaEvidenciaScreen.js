@@ -149,14 +149,15 @@ export default function NovaEvidenciaScreen({ route, navigation }) {
         coletadoPor: userId,
         vitima: vitimaId,
         categoria,
-        origem,
-        condicao,
-        status,
+        origem: origem || 'Outra',
+        condicao: condicao || 'Intacta',
+        status: status || 'Em Análise',
         localizacao,
-        conteudo,
-        observacoesTecnicas,
-        descricaoDetalhada,
+        conteudo: conteudo || 'Não informado',
+        observacoesTecnicas: observacoesTecnicas || 'Nenhuma',
+        descricaoDetalhada: descricaoDetalhada || 'Não informada',
       };
+
 
       let response;
       if (image) {
